@@ -102,7 +102,9 @@ class VideoScaleTest {
     @Test
     fun `a video matching its container is left alone in every mode`() {
         AspectRatioMode.entries
-            .filter { it != AspectRatioMode.ZOOM }
+            // Zoom magnifies by design, and the forced shapes (4:3, 16:9…) override the
+            // stream's own shape by design; both are tested on their own.
+            .filter { it != AspectRatioMode.ZOOM && it.forcedRatio == null }
             .forEach { mode ->
                 val scale = videoScale(widescreen, widescreen, mode)
                 assertEquals(1f, scale.first, tolerance, "$mode scaled width")

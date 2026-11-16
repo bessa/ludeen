@@ -369,5 +369,4 @@ Créez-en une sur la page ci-dessous — c\'est plus rapide sur un téléphone q
     <string name="tv_settings_buffer_low">Faible</string>
     <string name="tv_settings_buffer_balanced">Équilibré</string>
     <string name="tv_settings_buffer_high">Élevé</string>
-    <string name="tv_settings_buffer_unlimited">Illimité</string>
 </resources>

@@ -376,5 +376,4 @@
     <string name="tv_settings_buffer_low">منخفض</string>
     <string name="tv_settings_buffer_balanced">متوازن</string>
     <string name="tv_settings_buffer_high">مرتفع</string>
-    <string name="tv_settings_buffer_unlimited">غير محدود</string>
 </resources>

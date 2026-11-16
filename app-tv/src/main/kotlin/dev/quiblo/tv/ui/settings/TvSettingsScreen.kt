@@ -357,7 +357,6 @@ fun TvSettingsScreen(
                                 BufferMode.LOW -> R.string.tv_settings_buffer_low
                                 BufferMode.BALANCED -> R.string.tv_settings_buffer_balanced
                                 BufferMode.HIGH -> R.string.tv_settings_buffer_high
-                                BufferMode.UNLIMITED -> R.string.tv_settings_buffer_unlimited
                             },
                         )
                     },

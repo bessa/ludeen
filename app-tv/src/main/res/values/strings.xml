@@ -413,5 +413,4 @@ Make one on the page below — it is quicker on a phone than on a remote — the
     <string name="tv_settings_buffer_low">Low</string>
     <string name="tv_settings_buffer_balanced">Balanced</string>
     <string name="tv_settings_buffer_high">High</string>
-    <string name="tv_settings_buffer_unlimited">Unlimited</string>
 </resources>
