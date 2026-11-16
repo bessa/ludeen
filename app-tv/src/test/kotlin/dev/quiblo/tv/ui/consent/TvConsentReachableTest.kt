@@ -86,33 +86,10 @@ class TvConsentReachableTest {
         // point: a viewer with no playlist to hand must be able to reach the way past.
         press(Key.DirectionRight)
         press(Key.DirectionCenter)
-        assertEquals("Skipping the playlist turns the page; it does not accept.", 0, accepted)
-
-        compose.onNodeWithText(METADATA_TITLE).assertIsDisplayed()
-        skipTheKey()
-        assertEquals("Skipping the key is what accepts, on the fourth page.", 1, accepted)
-    }
-
-    /**
-     * The key page can be got past without typing anything, and says where a key comes from.
-     *
-     * Unlike a playlist, the app works without one — so a first-launch page asking for a key
-     * that could not be skipped would be a wall in front of a working app. The address is
-     * asserted because a television box often has no browser: the button beside the field is a
-     * shortcut, and the words are the part everybody can use.
-     */
-    @Test
-    fun `the fourth page offers a key, a way to get one, and a way past`() {
-        showTheScreen()
-        press(Key.DirectionCenter)
-        press(Key.DirectionCenter)
-        press(Key.DirectionRight)
-        press(Key.DirectionCenter)
-
-        compose.onNodeWithText(METADATA_TITLE).assertIsDisplayed()
-        compose.onNodeWithText(TMDB_URL, substring = true).assertIsDisplayed()
-        compose.onNodeWithText(GET_A_KEY).assertIsDisplayed()
-        compose.onNodeWithText(SKIP).assertIsDisplayed()
+        // This build asks for no film database key on first launch: skipping the playlist is
+        // the last step, and it is what accepts.
+        assertEquals("Skipping the playlist is the last step and accepts.", 1, accepted)
+        compose.onNodeWithText(METADATA_TITLE).assertDoesNotExist()
     }
 
     /**

@@ -18,8 +18,10 @@
 
 package dev.quiblo.tv.ui.settings
 
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.ContextWrapper
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
@@ -112,6 +114,7 @@ import dev.quiblo.feature.settings.ThirdPartyLicense
 import dev.quiblo.feature.settings.TmdbCheck
 import dev.quiblo.tv.BuildConfig
 import dev.quiblo.tv.R
+import dev.quiblo.tv.locale.TvLanguage
 import dev.quiblo.tv.ui.common.TvChip
 import dev.quiblo.tv.ui.common.TvTextField
 import dev.quiblo.tv.ui.common.tryRequestFocus
@@ -259,6 +262,29 @@ fun TvSettingsScreen(
         }
 
         if (section == TvSettingsSection.PROFILE) {
+            // The app's language, for everyone on this television. First, so it is easy to find
+            // for somebody who cannot read the language the screen is currently in.
+            item { SectionHeading(stringResource(R.string.tv_settings_language)) }
+            item {
+                val activity = context.findActivity()
+                val current = remember { TvLanguage.current(context) }
+                OptionRow(
+                    label = stringResource(R.string.tv_settings_language),
+                    description = stringResource(R.string.tv_settings_language_detail),
+                    options = TvLanguage.entries,
+                    selected = current,
+                    // Each language in its own name, so it can be found whatever is on screen.
+                    labelFor = { it.nativeName },
+                    onSelect = { chosen ->
+                        if (chosen != current) {
+                            TvLanguage.save(context, chosen)
+                            // Redrawn from scratch in the new language and direction.
+                            activity?.recreate()
+                        }
+                    },
+                )
+            }
+
             item { SectionHeading(stringResource(R.string.tv_settings_profile)) }
 
             item {
@@ -325,7 +351,16 @@ fun TvSettingsScreen(
                     label = stringResource(R.string.tv_settings_buffer),
                     options = BufferMode.entries,
                     selected = playerSettings.bufferMode,
-                    labelFor = { it.name.lowercase().replaceFirstChar(Char::uppercase) },
+                    labelFor = {
+                        stringResource(
+                            when (it) {
+                                BufferMode.LOW -> R.string.tv_settings_buffer_low
+                                BufferMode.BALANCED -> R.string.tv_settings_buffer_balanced
+                                BufferMode.HIGH -> R.string.tv_settings_buffer_high
+                                BufferMode.UNLIMITED -> R.string.tv_settings_buffer_unlimited
+                            },
+                        )
+                    },
                     onSelect = viewModel::setBufferMode,
                 )
             }
@@ -474,7 +509,16 @@ fun TvSettingsScreen(
                     label = stringResource(R.string.tv_settings_category_kind),
                     options = listOf(MediaKind.LIVE, MediaKind.VOD, MediaKind.SERIES),
                     selected = categoryKind,
-                    labelFor = { it.name.lowercase().replaceFirstChar(Char::uppercase) },
+                    // The tab names, so they are translated with everything else.
+                    labelFor = {
+                        stringResource(
+                            when (it) {
+                                MediaKind.LIVE -> R.string.tv_tab_live
+                                MediaKind.VOD -> R.string.tv_tab_movies
+                                MediaKind.SERIES -> R.string.tv_tab_series
+                            },
+                        )
+                    },
                     onSelect = viewModel::selectCategoryKind,
                 )
             }
@@ -1974,4 +2018,11 @@ private fun LazyListScope.manageProfiles(
             )
         }
     }
+}
+
+/** The activity behind a Compose context, unwrapping the language and theme wrappers around it. */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

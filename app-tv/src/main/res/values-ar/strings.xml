@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Quiblo — a free, open source IPTV player.
+  Copyright (C) 2026 The Quiblo Authors
+  Licensed under the GNU General Public License v3.0 or later. See LICENSE.
+-->
+<resources>
+    <string name="tv_app_name">Ludeen</string>
+
+    <string name="tv_tab_search">بحث</string>
+    <string name="tv_tab_live">مباشر</string>
+    <string name="tv_tab_recent">الأخيرة</string>
+    <string name="tv_live_group_provider">الفئة</string>
+    <string name="tv_live_group_country">البلد</string>
+    <string name="tv_live_group_type">النوع</string>
+    <string name="tv_recent_empty">لم تشاهد أي قناة بعد. ستظهر هنا القنوات التي تشغّلها من مباشر.</string>
+    <string name="tv_tab_for_you">الرئيسية</string>
+    <string name="tv_tab_movies">أفلام</string>
+    <string name="tv_tab_series">مسلسلات</string>
+    <string name="tv_tab_favourites">المفضلة</string>
+    <string name="tv_back_again_to_close">اضغط رجوع مرة أخرى لإغلاق Ludeen</string>
+    <string name="tv_settings">الإعدادات</string>
+
+    <!-- First launch -->
+    <string name="tv_consent_what_title">Ludeen</string>
+    <string name="tv_consent_what_body">مشغّل لقوائم التشغيل التي تملكها بالفعل.\n\nلا يأتي بأي قنوات أو أفلام، ولا بأي وسيلة للعثور عليها. إذا لم تكن لديك قائمة تشغيل أو اشتراك IPTV، فلا يوجد هنا ما تشاهده بعد — ولن يساعدك هذا المشروع في العثور على واحد.</string>
+    <string name="tv_consent_next">التالي</string>
+    <string name="tv_consent_terms_title">قبل أن تبدأ</string>
+    <string name="tv_consent_terms_body">أنت من يضيف مصادره، وأنت المسؤول عنها — بما في ذلك مدى قانونية مشاهدتها في بلدك.\n\nلا يغادر هذا الجهاز أي شيء تُدخله إلا إلى الخوادم التي تحددها بنفسك. لا يوجد حساب، ولا تتبّع، ولا خادم خاص بنا.\n\nالاستثناء الوحيد هو التحقق من التحديثات، وهو متوقف ما لم تفعّله من الإعدادات. ولا يرسل أي شيء عنك.\n\nLudeen مبني على Quiblo، وهو برنامج حر بموجب رخصة GPLv3، ويأتي دون أي ضمان من أي نوع.</string>
+    <string name="tv_consent_terms_link">الشروط الكاملة على quiblo-iptv.github.io/quiblo-wiki/wiki/terms</string>
+    <string name="tv_consent_start">ابدأ المشاهدة</string>
+    <string name="tv_consent_playlist_title">قائمة التشغيل</string>
+    <string name="tv_consent_playlist_body">أضف قائمة تشغيل M3U أو حساب Xtream الذي لديك، وسيحمّله Ludeen الآن.\n\nيمكنك فعل ذلك لاحقًا — ستجده في الإعدادات، ضمن قوائم التشغيل والحسابات.</string>
+    <string name="tv_consent_playlist_add">إضافة قائمة تشغيل</string>
+    <string name="tv_consent_playlist_skip">لاحقًا</string>
+    <string name="tv_consent_playlist_not_now">ليس الآن</string>
+    <string name="tv_consent_playlist_retry">إعادة المحاولة</string>
+    <string name="tv_consent_metadata_title">الملصقات والقصص</string>
+    <string name="tv_consent_metadata_body">مفتاح مجاني من The Movie Database يحوّل قائمة أسماء الملفات إلى كتالوج: ملصقات وقصص وطاقم تمثيل وتقييمات، إضافةً إلى عوامل تصفية النوع والسنة في البحث.
+
+أنشئ مفتاحًا من الصفحة أدناه — فذلك أسرع من الهاتف منه بجهاز التحكم — ثم اكتبه هنا. يمكنك فعل ذلك لاحقًا من الإعدادات.</string>
+    <string name="tv_consent_metadata_open">فتح The Movie Database</string>
+    <string name="tv_consent_metadata_skip">لاحقًا</string>
+
+    <!-- Profiles -->
+    <string name="tv_profile_welcome">مرحبًا بك في Ludeen</string>
+    <string name="tv_profile_who">من يشاهد؟</string>
+    <string name="tv_profile_detail">تُحفظ المفضلة وما شاهدته جزئيًا لكل شخص على حدة. أما الباقي فمشترك.</string>
+    <string name="tv_profile_add">إضافة ملف شخصي</string>
+    <string name="tv_profile_guest">ضيف</string>
+    <string name="tv_profile_guest_detail">لا يُحفظ شيء</string>
+    <string name="tv_profile_name">الاسم</string>
+    <string name="tv_profile_pick_avatar">اختر وجهًا</string>
+    <string name="tv_profile_switch">تبديل الملف الشخصي</string>
+    <string name="tv_profile_save">حفظ</string>
+    <string name="tv_profile_cancel">إلغاء</string>
+    <string name="tv_profile_delete">حذف</string>
+    <string name="tv_profile_delete_title">حذف %1$s؟</string>
+    <string name="tv_profile_delete_detail">تُحذف المفضلة ومتابعة المشاهدة والإعدادات مع الملف الشخصي. لا يمكن التراجع عن ذلك. لن تتأثر قوائم التشغيل والملفات الشخصية الأخرى.</string>
+    <string name="tv_profile_delete_confirm">حذف نهائي</string>
+    <string name="tv_profile_keep">إبقاء</string>
+    <string name="tv_profile_manage_hint">اضغط مطولًا على OK، أو اضغط القائمة، على ملف شخصي لإعادة تسميته أو تغيير وجهه أو حذفه.</string>
+    <string name="tv_settings_profiles_manage">إدارة الملفات الشخصية</string>
+    <string name="tv_settings_profiles_manage_detail">أعد تسمية ملف شخصي، أو غيّر وجهه، أو احذفه مع كل ما يحفظه.</string>
+    <string name="tv_settings_profiles_show">عرض</string>
+    <string name="tv_settings_profiles_hide">إخفاء</string>
+    <string name="tv_settings_profiles_edit">تعديل</string>
+    <string name="tv_settings_profile">من يشاهد</string>
+    <string name="tv_settings_profile_detail">المفضلة ومتابعة المشاهدة خاصة بهذا الملف الشخصي. عند التبديل يُطرح السؤال من جديد.</string>
+    <string name="tv_settings_profile_switch">تبديل</string>
+
+    <string name="tv_placeholder">يظهر محتوى %1$s هنا.</string>
+    <string name="tv_guide_none">لا يوجد دليل برامج لهذه القناة.</string>
+    <string name="tv_guide_blocked">مزوّدك لا يستجيب لطلبات دليل البرامج حاليًا. عادةً ما يعود للعمل من تلقاء نفسه خلال ربع ساعة.</string>
+    <string name="tv_guide_none_from_provider">لا يوفّر مزوّدك دليل برامج لهذه القنوات.</string>
+    <string name="tv_guide_on_now">يُعرض الآن</string>
+    <string name="tv_guide_time">%1$s – %2$s</string>
+    <string name="tv_no_channels">لا توجد قنوات بعد. أضف قائمة تشغيل على هاتفك واستوردها هنا.</string>
+    <string name="tv_no_source">لا توجد قائمة تشغيل بعد. أضف واحدة من الإعدادات.</string>
+
+    <string name="tv_sources_title">قوائم التشغيل والحسابات</string>
+    <string name="tv_sources_add">إضافة قائمة تشغيل أو حساب</string>
+    <string name="tv_sources_empty">لا توجد مصادر بعد.</string>
+    <string name="tv_sources_working">جارٍ التحميل…</string>
+    <string name="tv_sources_added">تم تحميل %1$d عنصر.</string>
+    <string name="tv_sources_failed">تعذّر تحميل هذا المصدر.</string>
+    <string name="tv_sources_kind_m3u">قائمة تشغيل M3U</string>
+    <string name="tv_sources_kind_xtream">حساب Xtream</string>
+    <string name="tv_sources_refresh">تحديث</string>
+    <string name="tv_sources_refresh_all">تحديث الكل</string>
+    <string name="tv_sources_refresh_live">تحديث المباشر</string>
+    <string name="tv_sources_refresh_movies">تحديث الأفلام</string>
+    <string name="tv_sources_refresh_series">تحديث المسلسلات</string>
+    <string name="tv_sources_delete">إزالة</string>
+    <string name="tv_sources_edit">تعديل</string>
+    <string name="tv_sources_edit_hint">تبقى المفضلة وما كنت تشاهده. إذا لم يقبل المزوّد التغيير، فلن يتغيّر شيء.</string>
+    <string name="tv_sources_password_keep">كلمة المرور (اتركها فارغة للإبقاء عليها)</string>
+    <string name="tv_sources_edit_save">حفظ وإعادة التحميل</string>
+    <string name="tv_sources_live_format">القنوات المباشرة: الوضع التلقائي يستخدم HLS إذا سمح مزوّدك بذلك، وإلا فيستخدم TS.</string>
+    <string name="tv_sources_live_format_auto">تلقائي</string>
+    <string name="tv_sources_live_format_hls">HLS</string>
+    <string name="tv_sources_live_format_ts">TS</string>
+    <string name="tv_sources_save">حفظ</string>
+    <string name="tv_sources_cancel">إلغاء</string>
+    <string name="tv_sources_name">الاسم (اختياري)</string>
+    <string name="tv_sources_url">رابط قائمة التشغيل، أو عنوان خادم Xtream</string>
+    <string name="tv_sources_username">اسم المستخدم (Xtream فقط)</string>
+    <string name="tv_sources_password">كلمة المرور (Xtream فقط)</string>
+    <string name="tv_sources_form_hint">اترك اسم المستخدم وكلمة المرور فارغين لقائمة تشغيل M3U.</string>
+
+    <string name="tv_no_content">لا شيء هنا بعد.</string>
+    <string name="tv_catalogue_unreadable">تعذّرت قراءة الكتالوج.</string>
+    <string name="tv_retry">إعادة المحاولة</string>
+
+    <!-- Recently Added -->
+    <string name="tv_row_recently_added">أُضيف مؤخرًا</string>
+    <string name="tv_row_latest_in_playlist">الأحدث في قائمة التشغيل</string>
+    <string name="tv_recently_added_none">لم يُضف شيء إلى هذه الخدمة خلال الثلاثين يومًا الماضية.</string>
+    <string name="tv_no_films_or_series">لا تحتوي قائمة التشغيل هذه على أفلام أو مسلسلات.</string>
+    <string name="tv_kind_movie">فيلم</string>
+    <string name="tv_kind_series">مسلسل</string>
+
+    <string name="tv_row_now_popular">الرائج الآن</string>
+    <string name="tv_row_popular_movies">أفلام رائجة</string>
+    <string name="tv_row_popular_series">مسلسلات رائجة</string>
+    <string name="tv_row_you_may_like">قد يعجبك</string>
+    <string name="tv_because_you_watched">لأنك شاهدت %1$s</string>
+
+    <string name="tv_unavailable">غير متوفر</string>
+    <string name="tv_not_available_yet">غير متوفر بعد</string>
+
+    <string name="tv_sources_incomplete">أدخل العنوان، ثم إما اسم المستخدم وكلمة المرور معًا أو لا شيء منهما.</string>
+
+    <!-- Search -->
+    <string name="tv_search_field">بحث</string>
+    <string name="tv_search_prompt">ابحث في القنوات المباشرة والأفلام والمسلسلات معًا.</string>
+    <string name="tv_search_empty">لا توجد نتائج مطابقة.</string>
+    <string name="tv_search_suggestions">هل تقصد</string>
+    <string name="tv_search_clear">مسح</string>
+    <string name="tv_search_advanced">متقدم</string>
+    <string name="tv_search_include_hidden">تضمين المخفي</string>
+    <string name="tv_search_include_live">تضمين التلفاز</string>
+    <string name="tv_search_genres_coverage">الأنواع تغطي %1$d%% من الكتالوج حتى الآن — والتصفح يكمل الباقي.</string>
+    <string name="tv_search_genres_empty">تصفّح بعض الأفلام أو المسلسلات لتتمكن من التصفية حسب النوع هنا.</string>
+    <string name="tv_search_genres_loading">جارٍ قراءة الأنواع في الكتالوج…</string>
+    <string name="tv_search_genres_disabled">أضف مفتاح The Movie Database من الإعدادات للتصفية حسب النوع.</string>
+
+    <!-- Settings -->
+    <string name="tv_settings_sources">قوائم التشغيل</string>
+    <string name="tv_settings_sources_label">قوائم التشغيل والحسابات</string>
+    <string name="tv_settings_sources_detail">أضف المصادر التي يشغّل منها التطبيق أو حدّثها أو أزلها.</string>
+    <string name="tv_settings_sources_manage">إدارة</string>
+    <string name="tv_settings_playback">التشغيل</string>
+    <string name="tv_settings_artwork">الصور</string>
+    <string name="tv_settings_seek_interval">التقديم والترجيع بمقدار</string>
+    <string name="tv_settings_auto_next">تشغيل الحلقة التالية بعد</string>
+    <string name="tv_settings_auto_next_detail">عند انتهاء الحلقة تُعرض الحلقة التالية. عند الإيقاف ينتظر التطبيق اختيارك.</string>
+    <string name="tv_settings_buffer">التخزين المؤقت</string>
+    <string name="tv_settings_bitrate">أقصى جودة</string>
+    <string name="tv_settings_channel_logos">إكمال شعارات القنوات الناقصة</string>
+    <string name="tv_settings_channel_logos_detail">يبحث عن صور للقنوات التي لا تتضمن قائمة التشغيل شعارًا لها. متوقف افتراضيًا.</string>
+    <string name="tv_settings_seconds">%1$d ث</string>
+    <string name="tv_settings_mbps">%1$d Mbps</string>
+    <string name="tv_settings_unlimited">غير محدود</string>
+    <string name="tv_settings_on">تشغيل</string>
+    <string name="tv_settings_off">إيقاف</string>
+
+    <string name="tv_settings_scripts">أنظمة الكتابة</string>
+    <string name="tv_settings_scripts_description">أخفِ العناوين المكتوبة بخط لا تقرؤه. لا يُخفى شيء حتى تختار خطًا، ولا تُخفى المفضلة أبدًا.</string>
+    <string name="tv_settings_scripts_show_all">إظهار كل شيء مجددًا</string>
+    <string name="tv_settings_scripts_show_all_action">إظهار الكل</string>
+    <string name="tv_settings_scripts_hidden_count">%1$d مخفي</string>
+    <string name="tv_settings_script_latin">اللاتينية</string>
+    <string name="tv_settings_script_arabic">العربية</string>
+    <string name="tv_settings_script_hebrew">العبرية</string>
+    <string name="tv_settings_script_cyrillic">السيريلية</string>
+    <string name="tv_settings_script_greek">اليونانية</string>
+    <string name="tv_settings_script_han">الصينية</string>
+    <string name="tv_settings_script_kana">اليابانية</string>
+    <string name="tv_settings_script_hangul">الكورية</string>
+    <string name="tv_settings_script_devanagari">الديفاناغارية</string>
+    <string name="tv_settings_script_thai">التايلاندية</string>
+    <string name="tv_settings_ambient">الإضاءة المحيطة</string>
+    <string name="tv_settings_ambient_detail">مفعّل. يضيء الأشرطة السوداء حول الفيلم بألوان الصورة.</string>
+    <string name="tv_settings_match_frame_rate">مطابقة معدل الإطارات</string>
+    <string name="tv_settings_match_frame_rate_detail">مفعّل. يحوّل الشاشة إلى معدل إطارات الفيلم أثناء تشغيله لتكون الحركة سلسة. قد تسودّ الشاشة لحظة عند التحويل.</string>
+    <string name="tv_settings_search">بحث</string>
+    <string name="tv_settings_search_live">القنوات المباشرة في البحث المتقدم</string>
+    <string name="tv_settings_search_live_detail">متوقف. القناة المباشرة ليس لها نوع، لذا لا يطابقها عامل تصفية النوع إلا من خلال اسمها.</string>
+    <string name="tv_settings_merge_titles">دمج العناوين المكررة</string>
+    <string name="tv_settings_merge_titles_detail">اعرض الفيلم مرة واحدة عندما يدرجه مزوّدك بعدة جودات. تُعرض النسخ الأخرى في شاشة الفيلم نفسه.</string>
+    <string name="tv_settings_merge_categories">شبكة واحدة بدل الرفوف</string>
+    <string name="tv_settings_merge_categories_detail">يضع المزوّدون الفيلم نفسه في عدة فئات — FILMS HD وFILMS 4K وFILMS AR. فعّل هذا الخيار لإلغاء الرفوف وتصفح كل شيء في شبكة واحدة.</string>
+
+    <string name="tv_settings_section_profile">الملف الشخصي</string>
+    <string name="tv_settings_section_app">التطبيق</string>
+
+    <string name="tv_settings_tabs">علامات التبويب</string>
+    <string name="tv_settings_tabs_detail">الأقسام التي تظهر في الشريط العلوي. هذا خاص بك وحدك — يحتفظ كل شخص آخر على هذا التلفاز بإعداده. يجب أن يبقى قسم واحد على الأقل.</string>
+
+    <string name="tv_settings_metadata">معلومات الأفلام</string>
+
+    <string name="tv_settings_playback_log">سجل التشغيل</string>
+    <string name="tv_settings_playback_log_detail">آخر 20 مرة فشل فيها بث على هذا التلفاز، والجهة التي كانت المشكلة لديها. يُحفظ في الذاكرة فقط: يُمحى عند إغلاق التطبيق، ولا يُرسل أي شيء إلى أي مكان.</string>
+    <string name="tv_settings_playback_log_empty">لم يفشل شيء منذ فتح Ludeen.</string>
+    <string name="tv_settings_updates">التحديثات</string>
+    <string name="tv_settings_update_on_launch">التحقق عند التشغيل</string>
+    <string name="tv_settings_update_on_launch_detail">يُثبَّت Ludeen من ملف APK، لذا لا شيء يخبرك بوجود إصدار أحدث. عند التفعيل، يسأل التطبيق صفحة إصداراته مرة واحدة في كل تشغيل. عند الإيقاف لا يُرسل أي طلب.</string>
+    <string name="tv_update_available_title">يتوفر إصدار جديد</string>
+    <string name="tv_update_available_body">صدر الإصدار %1$s. إصدارك الحالي هو %2$s.</string>
+    <string name="tv_update_now">التحديث الآن</string>
+    <string name="tv_update_later">لاحقًا</string>
+    <string name="tv_settings_categories">الفئات</string>
+    <string name="tv_settings_category_sort">ترتيب الأفلام والمسلسلات</string>
+    <string name="tv_settings_category_sort_detail">طريقة ترتيب الرفوف في الأفلام والمسلسلات. يحتفظ المباشر بتجميعه الخاص.</string>
+    <string name="tv_settings_category_sort_provider">المزوّد</string>
+    <string name="tv_settings_category_sort_alphabetical">أبجدي</string>
+    <string name="tv_settings_category_sort_language">حسب اللغة</string>
+    <string name="tv_settings_category_languages_first">اللغات أولًا</string>
+    <string name="tv_settings_category_languages_first_detail">اضغط على اللغات بالترتيب الذي تريده في الأعلى — العربية ثم الإنجليزية. اضغط مجددًا للإزالة.</string>
+    <string name="tv_settings_category_kind">تعديل فئات</string>
+    <string name="tv_settings_category_whose">الإخفاء وإعادة التسمية وإعادة الترتيب خاصة بك وحدك. يحتفظ كل شخص آخر على هذا التلفاز بقائمته.</string>
+    <string name="tv_settings_category_summary">%1$d فئة، %2$d مخفية</string>
+    <string name="tv_settings_category_enter">اضغط للتعديل</string>
+    <string name="tv_settings_category_leave">اضغط رجوع للخروج</string>
+    <string name="tv_settings_category_empty">لا توجد فئات في هذا المصدر</string>
+    <string name="tv_settings_rename_field">إعادة التسمية إلى</string>
+    <string name="tv_settings_apply">تطبيق</string>
+    <string name="tv_settings_hide">إخفاء</string>
+    <string name="tv_settings_move_up">نقل لأعلى</string>
+    <string name="tv_settings_move_down">نقل لأسفل</string>
+    <string name="tv_settings_show">عرض</string>
+    <string name="tv_settings_tmdb">معلومات الأفلام والمسلسلات</string>
+    <string name="tv_settings_tmdb_detail">اختياري. يضيف القصص وطاقم التمثيل والتقييمات من The Movie Database.</string>
+    <string name="tv_settings_tmdb_field">مفتاح API</string>
+    <string name="tv_settings_tmdb_checking">جارٍ التحقق…</string>
+    <string name="tv_settings_tmdb_accepted">تم قبول المفتاح.</string>
+    <string name="tv_settings_tmdb_rejected">لم يُقبل هذا المفتاح.</string>
+    <string name="tv_settings_tmdb_cleared">تمت إزالة المفتاح.</string>
+    <string name="tv_settings_scan">جلب معلومات كل الأفلام والمسلسلات</string>
+    <string name="tv_settings_scan_detail">يبحث في الكتالوج كاملًا مرة واحدة، لتكون الأنواع والتقييمات جاهزة قبل التصفح. يستغرق وقتًا مع قائمة تشغيل كبيرة — يمكنك مغادرة هذه الشاشة، وسيكمل من حيث توقف.</string>
+    <string name="tv_settings_cached_titles">المحفوظ حاليًا: %1$d عنوان تم البحث عنه.</string>
+    <string name="tv_settings_scan_start">بدء</string>
+    <string name="tv_settings_scan_stop">إيقاف</string>
+    <string name="tv_settings_scan_preparing">جارٍ تحديد ما يحتاج إلى بحث…</string>
+    <string name="tv_settings_scan_progress">تم البحث عن %1$d من %2$d · عُثر على %3$d</string>
+    <string name="tv_settings_scan_finished">اكتمل. تم وصف %1$d عنوان، ولم يُعثر على %2$d.</string>
+    <string name="tv_settings_scan_cancelled">توقف. تم الاحتفاظ بـ %1$d عنوان — البدء مجددًا يكمل من هنا.</string>
+    <string name="tv_settings_scan_rate_limited">طلبت The Movie Database الإبطاء، فتوقف الفحص. تم الاحتفاظ بـ %1$d عنوان. حاول لاحقًا.</string>
+    <string name="tv_settings_scan_key_rejected">رفضت The Movie Database المفتاح. تم الاحتفاظ بـ %1$d عنوان. تحقق من المفتاح أعلاه.</string>
+    <string name="tv_settings_scan_unavailable">تعذّر الوصول إلى The Movie Database. تم الاحتفاظ بـ %1$d عنوان. تحقق من الاتصال وحاول مجددًا.</string>
+    <string name="tv_settings_save">حفظ</string>
+    <string name="tv_settings_clear">مسح</string>
+    <string name="tv_settings_tmdb_open">الحصول على مفتاح</string>
+    <string name="tv_settings_backup">النسخ الاحتياطي</string>
+    <string name="tv_settings_backup_label">إعداداتك</string>
+    <string name="tv_settings_backup_detail">لا تُكتب كلمات المرور في الملف أبدًا — ستعيد إدخالها بعد الاستيراد.</string>
+    <string name="tv_settings_export">تصدير</string>
+    <string name="tv_settings_import">استيراد</string>
+    <string name="tv_settings_backup_working">جارٍ العمل…</string>
+    <string name="tv_settings_backup_exported">تم تصدير %1$d بايت.</string>
+    <string name="tv_settings_backup_exported_downloads">حُفظ في التنزيلات باسم %1$s.</string>
+    <string name="tv_settings_backup_imported">تمت استعادة %1$d مصدر و%2$d عنصر مفضل.</string>
+    <string name="tv_settings_backup_rejected">كُتبت هذه النسخة الاحتياطية بإصدار أحدث من Ludeen (التنسيق %1$d، وهذا الإصدار يقرأ %2$d). حدّث التطبيق وحاول مجددًا.</string>
+    <string name="tv_settings_backup_failed">تعذّرت قراءة هذا الملف.</string>
+
+    <!-- Service attribution. TMDB's terms require this sentence wherever their data appears. -->
+    <string name="tv_settings_tmdb_attribution">يستخدم هذا المنتج واجهة TMDB API لكنه غير معتمد أو مصادق عليه من TMDB.</string>
+    <string name="tv_settings_channel_logos_attribution">بيانات القنوات من مشروع iptv-org.</string>
+
+    <!-- About and licences -->
+    <string name="tv_settings_about">حول</string>
+    <string name="tv_settings_version_label">Ludeen by Bash</string>
+    <string name="tv_settings_version_detail">الإصدار %1$s</string>
+
+    <string name="tv_settings_update_label">التحديثات</string>
+    <string name="tv_settings_update_check">التحقق الآن</string>
+    <string name="tv_settings_update_download">تنزيل</string>
+    <string name="tv_settings_update_install">تثبيت</string>
+    <string name="tv_settings_update_idle">لا يتحقق Ludeen من تلقاء نفسه. اضغط لفحص صفحة الإصدارات مرة واحدة.</string>
+    <string name="tv_settings_update_checking">جارٍ سؤال صفحة الإصدارات…</string>
+    <string name="tv_settings_update_current">لديك أحدث إصدار.</string>
+    <string name="tv_settings_update_available">%1$s متوفر.</string>
+    <string name="tv_settings_update_downloading">جارٍ تنزيل %1$s…</string>
+    <string name="tv_settings_update_ready">تم تنزيل %1$s وتطابق مجموعه الاختباري. حُفظ باسم %2$s.</string>
+    <string name="tv_settings_update_offline">هذا التلفاز غير متصل بالإنترنت.</string>
+    <string name="tv_settings_update_unreachable">تعذّر الوصول إلى صفحة الإصدارات.</string>
+    <string name="tv_settings_update_no_asset">لا يتضمن هذا الإصدار نسخة للتلفاز.</string>
+    <string name="tv_settings_update_malformed">تعذّرت قراءة هذا الإصدار.</string>
+    <string name="tv_settings_update_checksum">لم يطابق الملف المُنزَّل مجموعه الاختباري المنشور، لذا حُذف. لم يُثبَّت أي شيء.</string>
+    <string name="tv_settings_update_no_checksum">لم ينشر هذا الإصدار أي مجموع اختباري، لذا تعذّر التحقق من أي شيء. لم يُنزَّل أي شيء.</string>
+    <string name="tv_settings_update_installer_refused">رفض هذا التلفاز فتح أداة التثبيت. الملف مُنزَّل — ثبّته من مدير الملفات.</string>
+    <string name="tv_settings_licenses_label">تراخيص المصادر المفتوحة</string>
+    <string name="tv_settings_licenses_detail">Ludeen مبني على Quiblo، وهو برنامج حر بموجب رخصة GNU General Public License الإصدار 3.0 أو أحدث. ويتضمن مكونات الجهات الخارجية التالية.</string>
+    <string name="tv_settings_licenses_show">عرض</string>
+    <string name="tv_settings_licenses_hide">إخفاء</string>
+
+    <!-- Categories -->
+    <string name="tv_category_all">كل القنوات</string>
+    <string name="tv_category_ungrouped">بلا مجموعة</string>
+
+    <string name="tv_continue_watching">متابعة المشاهدة</string>
+    <string name="tv_continue_watching_series">متابعة المشاهدة — مسلسلات</string>
+    <string name="tv_continue_watching_movies">متابعة المشاهدة — أفلام</string>
+    <string name="tv_home_nothing_to_continue">لا شيء لمتابعته بعد. ابدأ فيلمًا أو مسلسلًا وسيظهر هنا.</string>
+
+    <!-- Detail screens -->
+    <string name="tv_detail_loading">جارٍ التحميل…</string>
+    <string name="tv_detail_unavailable">لم يعد هذا العنوان متوفرًا من هذا المصدر.</string>
+    <string name="tv_detail_play">تشغيل</string>
+    <string name="tv_detail_resume">استئناف</string>
+    <string name="tv_detail_from_start">من البداية</string>
+    <string name="tv_detail_favourite">إضافة إلى المفضلة</string>
+    <string name="tv_detail_unfavourite">إزالة من المفضلة</string>
+    <string name="tv_detail_remove_history">إزالة من السجل</string>
+    <string name="tv_detail_liked">أعجبني</string>
+    <string name="tv_detail_like">أعجبني هذا</string>
+    <string name="tv_detail_disliked">لا يناسبني</string>
+    <string name="tv_detail_dislike">لا يناسبك؟</string>
+    <string name="tv_continue_remove_confirm">إزالة؟ اضغط مجددًا</string>
+    <string name="tv_detail_refresh">تحديث المعلومات</string>
+    <string name="tv_detail_versions">متوفر أيضًا بصيغة</string>
+    <string name="tv_hero_refresh">عرض عناوين مميزة أخرى</string>
+    <string name="tv_search_filter_genres">الأنواع</string>
+    <string name="tv_search_filter_years">السنوات</string>
+    <string name="tv_search_filter_chosen">%1$s · %2$s</string>
+    <string name="tv_series_all_episodes">كل الحلقات</string>
+    <string name="tv_series_merge_seasons">دمج المواسم</string>
+    <string name="tv_series_newest_first">الأحدث أولًا</string>
+    <string name="tv_detail_refresh_working">جارٍ الطلب…</string>
+    <string name="tv_detail_refresh_updated">تم تحديث المعلومات.</string>
+    <string name="tv_detail_refresh_no_match">لا تملك خدمة البيانات الوصفية أي معلومات عن هذا العنوان.</string>
+    <string name="tv_detail_refresh_rate_limited">طلبت خدمة البيانات الوصفية الإبطاء. لم يتغيّر شيء.</string>
+    <string name="tv_detail_refresh_key_rejected">رُفض مفتاح البيانات الوصفية. لم يتغيّر شيء.</string>
+    <string name="tv_detail_refresh_unavailable">تعذّر الوصول إلى خدمة البيانات الوصفية. لم يتغيّر شيء.</string>
+
+    <!-- Series -->
+    <string name="tv_series_unavailable">تعذّر تحميل هذا المسلسل.</string>
+    <string name="tv_series_no_episodes">لا يتضمن هذا المسلسل أي حلقات.</string>
+    <string name="tv_series_season">الموسم %1$d</string>
+    <string name="tv_series_episode_number">م%1$d ح%2$d</string>
+    <string name="tv_series_resume">المتابعة من الموسم %1$d، الحلقة %2$d</string>
+    <string name="tv_player_live">مباشر</string>
+    <string name="tv_player_hint_zap">▲ لتغيير القناة</string>
+    <string name="tv_player_audio">الصوت</string>
+    <string name="tv_player_subtitles">الترجمة</string>
+    <string name="tv_player_info">معلومات التشغيل</string>
+    <string name="tv_player_subtitles_off">إيقاف</string>
+
+    <string name="tv_player_next_episode_in">الحلقة التالية خلال %1$d</string>
+    <string name="tv_player_next_episode_ready">الحلقة التالية</string>
+    <string name="tv_player_next_episode_play">تشغيل الآن</string>
+    <string name="tv_player_next_episode_stop">إيقاف</string>
+
+    <!-- Spoken by TalkBack. -->
+    <string name="tv_a11y_buffering">جارٍ التخزين المؤقت</string>
+    <string name="tv_a11y_play">تشغيل</string>
+    <string name="tv_a11y_pause">إيقاف مؤقت</string>
+    <string name="tv_a11y_rewind">رجوع %1$d ثانية</string>
+    <string name="tv_a11y_forward">تقديم %1$d ثانية</string>
+    <string name="tv_a11y_next_episode">الحلقة التالية</string>
+    <string name="tv_a11y_previous_episode">الحلقة السابقة</string>
+    <string name="tv_a11y_tracks">الصوت والترجمة</string>
+    <string name="tv_a11y_aspect">ملاءمة الصورة: %1$s</string>
+    <string name="tv_a11y_timeline">الخط الزمني. استخدم اليسار واليمين للتنقل، ثم انتظر.</string>
+    <plurals name="tv_series_seasons">
+        <item quantity="zero">%1$d موسم</item>
+        <item quantity="one">%1$d موسم</item>
+        <item quantity="two">%1$d موسمان</item>
+        <item quantity="few">%1$d مواسم</item>
+        <item quantity="many">%1$d موسمًا</item>
+        <item quantity="other">%1$d موسم</item>
+    </plurals>
+    <string name="tv_settings_language">اللغة</string>
+    <string name="tv_settings_language_detail">لغة التطبيق بالكامل، لكل من يستخدم هذا التلفاز.</string>
+    <string name="tv_settings_buffer_low">منخفض</string>
+    <string name="tv_settings_buffer_balanced">متوازن</string>
+    <string name="tv_settings_buffer_high">مرتفع</string>
+    <string name="tv_settings_buffer_unlimited">غير محدود</string>
+</resources>

@@ -955,12 +955,17 @@ private fun SeekInterval.forwardIcon(): ImageVector = when (this) {
     SeekInterval.FIFTEEN -> Icons.Filled.FastForward
 }
 
+/** The label for each picture-size mode. Shared with the television's player button. */
 @StringRes
-private fun AspectRatioMode.labelRes(): Int = when (this) {
+fun AspectRatioMode.labelRes(): Int = when (this) {
     AspectRatioMode.FIT -> R.string.player_aspect_fit
     AspectRatioMode.FILL -> R.string.player_aspect_fill
     AspectRatioMode.ZOOM -> R.string.player_aspect_zoom
     AspectRatioMode.STRETCH -> R.string.player_aspect_stretch
+    AspectRatioMode.RATIO_4_3 -> R.string.player_aspect_4_3
+    AspectRatioMode.RATIO_16_9 -> R.string.player_aspect_16_9
+    AspectRatioMode.RATIO_21_9 -> R.string.player_aspect_21_9
+    AspectRatioMode.RATIO_1_1 -> R.string.player_aspect_1_1
 }
 
 private const val MILLIS_PER_SECOND = 1000

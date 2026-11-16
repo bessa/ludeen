@@ -147,10 +147,31 @@ enum class AspectRatioMode {
 
     /** Distort to fill. Aspect is not preserved. */
     STRETCH,
+
+    /**
+     * The picture forced to a shape, as large as fits the screen without cropping.
+     *
+     * For streams whose own shape is wrong — a 4:3 channel squashed into a 16:9 frame, or the
+     * other way round. The source's shape is ignored and [forcedRatio] drawn instead.
+     */
+    RATIO_4_3,
+    RATIO_16_9,
+    RATIO_21_9,
+    RATIO_1_1,
     ;
 
     /** Extra magnification applied on top of the base fit. */
     val extraScale: Float get() = if (this == ZOOM) ZOOM_SCALE else 1f
+
+    /** The shape this mode forces the picture into, or null to keep the stream's own. */
+    val forcedRatio: Float?
+        get() = when (this) {
+            RATIO_4_3 -> 4f / 3f
+            RATIO_16_9 -> 16f / 9f
+            RATIO_21_9 -> 21f / 9f
+            RATIO_1_1 -> 1f
+            else -> null
+        }
 
     private companion object {
         const val ZOOM_SCALE = 1.15f

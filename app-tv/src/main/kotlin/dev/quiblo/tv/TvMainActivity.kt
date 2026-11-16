@@ -19,15 +19,22 @@
 package dev.quiblo.tv
 
 import android.app.UiModeManager
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import dev.quiblo.tv.locale.TvLanguage
 import dev.quiblo.tv.ui.QuibloTvTheme
 import dev.quiblo.tv.ui.TvApp
 
 /** The single activity hosting the television UI. */
 class TvMainActivity : ComponentActivity() {
+
+    /** The viewer's chosen language (English, French or Arabic), before anything is drawn. */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(TvLanguage.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

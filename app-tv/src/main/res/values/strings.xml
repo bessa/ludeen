@@ -408,4 +408,10 @@ Make one on the page below — it is quicker on a phone than on a remote — the
         <item quantity="one">%1$d season</item>
         <item quantity="other">%1$d seasons</item>
     </plurals>
+    <string name="tv_settings_language">Language</string>
+    <string name="tv_settings_language_detail">The language of the whole app, for everyone on this television.</string>
+    <string name="tv_settings_buffer_low">Low</string>
+    <string name="tv_settings_buffer_balanced">Balanced</string>
+    <string name="tv_settings_buffer_high">High</string>
+    <string name="tv_settings_buffer_unlimited">Unlimited</string>
 </resources>

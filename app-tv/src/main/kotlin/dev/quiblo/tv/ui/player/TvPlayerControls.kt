@@ -84,6 +84,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.quiblo.core.model.AspectRatioMode
+import dev.quiblo.feature.player.labelRes
 import dev.quiblo.core.model.SeekInterval
 import dev.quiblo.tv.R
 import dev.quiblo.tv.ui.common.insistOnFocus
@@ -384,7 +385,7 @@ private fun OptionsRow(
         add(
             PlayerButton(
                 icon = Icons.Filled.AspectRatio,
-                label = stringResource(R.string.tv_a11y_aspect, state.aspectRatioMode.name),
+                label = stringResource(R.string.tv_a11y_aspect, stringResource(state.aspectRatioMode.labelRes())),
                 onClick = actions.cycleAspect,
                 size = OPTION_BUTTON_SIZE,
                 // Picture fit is the only one of the three that is always drawn, so on a film

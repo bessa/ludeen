@@ -118,9 +118,11 @@ fun TvConsentScreen(
                 onAction = { page = ConsentPage.PLAYLIST },
             )
 
+            // The last page in this build. The film database key is not asked for on first
+            // launch; it is in Settings for whoever wants posters and plots.
             ConsentPage.PLAYLIST -> PlaylistPage(
                 viewModel = viewModel,
-                onDone = { page = ConsentPage.METADATA },
+                onDone = onAccept,
             )
 
             ConsentPage.METADATA -> MetadataPage(onDone = onAccept, viewModel = settingsViewModel)

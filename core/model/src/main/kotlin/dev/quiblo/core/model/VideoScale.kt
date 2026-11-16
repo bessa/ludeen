@@ -31,8 +31,17 @@ fun videoScale(
     mode: AspectRatioMode,
 ): Pair<Float, Float> {
     if (mode == AspectRatioMode.STRETCH) return 1f to 1f
+    if (containerAspectRatio <= 0f) return 1f to 1f
+
+    // A forced shape: the surface fills the screen, so draw the forced ratio letterboxed inside
+    // it, whatever the stream says its own shape is.
+    mode.forcedRatio?.let { forced ->
+        val r = forced / containerAspectRatio
+        return if (r > 1f) 1f to (1f / r) else r to 1f
+    }
+
     val video = videoAspectRatio ?: return 1f to 1f
-    if (video <= 0f || containerAspectRatio <= 0f) return 1f to 1f
+    if (video <= 0f) return 1f to 1f
 
     val ratio = video / containerAspectRatio
     val isWiderThanContainer = ratio > 1f
@@ -46,7 +55,7 @@ fun videoScale(
         AspectRatioMode.FILL, AspectRatioMode.ZOOM ->
             if (isWiderThanContainer) ratio to 1f else 1f to (1f / ratio)
 
-        AspectRatioMode.STRETCH -> 1f to 1f
+        else -> 1f to 1f
     }
 
     val extra = mode.extraScale

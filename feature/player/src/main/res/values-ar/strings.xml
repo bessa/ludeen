@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Quiblo — a free, open source IPTV player.
+  Copyright (C) 2026 The Quiblo Authors
+  Licensed under the GNU General Public License v3.0 or later. See LICENSE.
+-->
+<resources>
+    <string name="feature_player_title">المشغّل</string>
+    <string name="feature_player_empty">يبدأ التشغيل هنا.</string>
+
+    <string name="player_play">تشغيل</string>
+    <string name="player_pause">إيقاف مؤقت</string>
+    <string name="player_back">رجوع</string>
+    <string name="player_retry">إعادة المحاولة</string>
+    <string name="player_tracks">الصوت والترجمة</string>
+    <string name="player_audio">الصوت</string>
+    <string name="player_subtitles">الترجمة</string>
+    <string name="player_subtitles_off">إيقاف</string>
+
+    <string name="player_subtitles_add_file">إضافة ملف ترجمة…</string>
+    <string name="player_subtitles_remove_file">إزالة الملف المضاف</string>
+    <string name="player_subtitles_attached">تم تحميل ملف الترجمة. اختره من قائمة الترجمة.</string>
+    <string name="player_subtitles_not_subtitles">لا يبدو أن هذا الملف ملف ترجمة.</string>
+    <string name="player_subtitles_unreadable">تعذّر فتح هذا الملف.</string>
+    <string name="player_subtitles_too_large">هذا الملف أكبر من أن يكون ملف ترجمة.</string>
+    <string name="player_subtitles_no_picker">لا يوجد على هذا الجهاز تطبيق لاختيار الملفات.</string>
+    <string name="player_subtitles_failed">تعذّر تحميل هذه الترجمة. يستمر الفيلم بدونها.</string>
+    <string name="player_subtitles_untitled">ترجمة</string>
+    <string name="player_subtitles_fetching">%1$s (جارٍ التحميل…)</string>
+    <string name="player_subtitles_unavailable">%1$s (غير متوفرة)</string>
+
+    <string name="player_subtitles_size">حجم الترجمة</string>
+    <string name="player_subtitles_text_colour">لون الترجمة</string>
+    <string name="player_subtitles_background">خلفية الترجمة</string>
+    <string name="player_subtitles_match_system">مثل إعدادات النظام</string>
+    <string name="player_subtitles_size_small">صغير</string>
+    <string name="player_subtitles_size_medium">متوسط</string>
+    <string name="player_subtitles_size_large">كبير</string>
+    <string name="player_subtitles_size_extra_large">كبير جدًا</string>
+    <string name="player_subtitles_colour_white">أبيض</string>
+    <string name="player_subtitles_colour_yellow">أصفر</string>
+    <string name="player_subtitles_colour_black">أسود</string>
+    <string name="player_subtitles_background_none">بدون</string>
+    <string name="player_subtitles_background_light">خفيفة</string>
+    <string name="player_subtitles_background_solid">معتمة</string>
+    <string name="player_close">إغلاق</string>
+    <string name="player_live">مباشر</string>
+    <string name="player_reconnecting">جارٍ إعادة الاتصال… (المحاولة %1$d)</string>
+
+    <string name="player_a11y_buffering">جارٍ التخزين المؤقت</string>
+
+    <string name="player_error_network">انقطع الاتصال بهذا البث.</string>
+    <string name="player_error_unreachable">تعذّر الوصول إلى هذا البث.</string>
+    <string name="player_error_timeout">لم يستجب هذا البث في الوقت المحدد.</string>
+    <string name="player_error_format">هذا البث بتنسيق لا يستطيع Quiblo تشغيله.</string>
+    <string name="player_error_drm">هذا البث محمي من النسخ. لا يدعم Quiblo تقنية DRM.</string>
+    <string name="player_error_gone">لم يعد هذا البث متوفرًا على هذا العنوان.</string>
+    <string name="player_error_auth">لم يقبل مزوّدك اسم المستخدم أو كلمة المرور لهذا الحساب.</string>
+    <string name="player_error_refused">رفض مزوّدك هذا البث. ربما يكون قيد الاستخدام على شاشة أخرى.</string>
+    <string name="player_error_unknown">تعذّر تشغيل هذا البث.</string>
+
+    <string name="player_checking_why">جارٍ التحقق من السبب…</string>
+    <string name="player_side_connection">اتصالك</string>
+    <string name="player_side_subscription">اشتراكك</string>
+    <string name="player_side_provider">مزوّدك</string>
+    <string name="player_side_quiblo">Quiblo</string>
+    <string name="player_side_unknown">غير مؤكد</string>
+
+    <string name="player_verdict_offline">هذا الجهاز غير متصل بالإنترنت.</string>
+    <string name="player_verdict_expired_on">انتهى اشتراكك في %1$s.</string>
+    <string name="player_verdict_expired">انتهى اشتراكك.</string>
+    <string name="player_verdict_disabled">عطّل مزوّدك هذا الحساب.</string>
+    <string name="player_verdict_credentials">لم يعد مزوّدك يقبل اسم المستخدم أو كلمة المرور هذه.</string>
+    <string name="player_verdict_limit_count">حسابك قيد الاستخدام بالفعل على %1$d من أصل %2$d شاشات مسموح بها.</string>
+    <string name="player_verdict_limit">حسابك قيد الاستخدام بالفعل على كل الشاشات المسموح بها.</string>
+    <string name="player_verdict_provider_down">خادم مزوّدك لا يستجيب. هذا الجهاز وQuiblo يعملان بشكل سليم.</string>
+    <string name="player_verdict_blocking">يرفض مزوّدك مؤقتًا الطلبات الواردة من هذا الجهاز.</string>
+    <string name="player_verdict_channel_offline">اشتراكك فعّال، لكن هذه القناة لا تبث حاليًا.</string>
+    <string name="player_verdict_channel_missing">لا يوجد لدى مزوّدك شيء على عنوان هذه القناة حاليًا.</string>
+    <string name="player_verdict_format">يمكن الوصول إلى البث، لكن Quiblo لا يستطيع تشغيل تنسيقه على هذا الجهاز.</string>
+    <string name="player_verdict_app">واجه Quiblo خطأً أثناء تشغيل بث سليم. هذا خلل في Quiblo.</string>
+    <string name="player_verdict_undetermined">تعذّر تحديد ما إذا كانت المشكلة في حسابك أو المزوّد أو Quiblo.</string>
+
+    <string name="player_advice_offline">تحقق من اتصال Wi-Fi أو الشبكة، ثم حاول مجددًا.</string>
+    <string name="player_advice_expired">جدّد اشتراكك لدى مزوّدك، ثم حاول مجددًا.</string>
+    <string name="player_advice_disabled">تواصل مع مزوّدك.</string>
+    <string name="player_advice_credentials">تحقق من اسم المستخدم وكلمة المرور لهذا المصدر مع مزوّدك.</string>
+    <string name="player_advice_limit">أوقف المشاهدة على شاشة أخرى، ثم حاول مجددًا.</string>
+    <string name="player_advice_provider_down">حاول مجددًا لاحقًا.</string>
+    <string name="player_advice_blocking">انتظر بضع دقائق، ثم حاول مجددًا.</string>
+    <string name="player_advice_channel_offline">جرّب قناة أخرى.</string>
+    <string name="player_advice_report">يُرجى الإبلاغ عن ذلك مع التفاصيل الظاهرة أدناه.</string>
+    <string name="player_advice_undetermined">حاول مجددًا. إذا استمر الفشل، فالتفاصيل أدناه توضح ما تم العثور عليه.</string>
+
+    <string name="player_copy_details">نسخ التفاصيل</string>
+    <string name="player_details_copied">تم نسخ التفاصيل</string>
+
+    <string name="player_start_over">البدء من جديد</string>
+    <string name="player_swap_lock">نقل زر القفل إلى الجهة الأخرى</string>
+    <string name="player_lock">قفل الشاشة</string>
+    <string name="player_unlock">إلغاء قفل الشاشة</string>
+    <string name="player_skip_back">ترجيع %1$d ثانية</string>
+    <string name="player_skip_forward">تقديم %1$d ثانية</string>
+
+    <string name="player_aspect_ratio">نسبة العرض إلى الارتفاع: %1$s</string>
+    <string name="player_aspect_fit">ملاءمة</string>
+    <string name="player_aspect_fill">ملء</string>
+    <string name="player_aspect_zoom">تكبير</string>
+    <string name="player_aspect_stretch">تمديد</string>
+
+    <string name="player_brightness">السطوع</string>
+    <string name="player_volume">مستوى الصوت</string>
+
+    <string name="player_info_open">معلومات التشغيل</string>
+    <string name="player_info_title">معلومات التشغيل · %1$s</string>
+    <string name="player_info_collecting">جارٍ الجمع…</string>
+    <string name="player_info_section_stream">البث</string>
+    <string name="player_info_section_video">الفيديو</string>
+    <string name="player_info_section_audio">الصوت</string>
+    <string name="player_info_section_frames">الإطارات</string>
+    <string name="player_info_section_network">الشبكة</string>
+    <string name="player_info_section_recovery">الاستعادة</string>
+    <string name="player_info_section_device">الجهاز</string>
+    <string name="player_info_state">الحالة</string>
+    <string name="player_info_kind">النوع</string>
+    <string name="player_info_kind_live">مباشر</string>
+    <string name="player_info_kind_vod">فيلم أو حلقة</string>
+    <string name="player_info_playing">قيد التشغيل</string>
+    <string name="player_info_paused">متوقف مؤقتًا</string>
+    <string name="player_info_container">الحاوية</string>
+    <string name="player_info_position">الموضع</string>
+    <string name="player_info_buffered">المخزّن مسبقًا</string>
+    <string name="player_info_buffer_setting">المخزن المؤقت · الحد</string>
+    <string name="player_info_no_cap">بلا حد</string>
+    <string name="player_info_engine_items">العناصر على هذا المحرك</string>
+    <string name="player_info_codec">الترميز</string>
+    <string name="player_info_size">الأبعاد</string>
+    <string name="player_info_bitrate">معدل البت</string>
+    <string name="player_info_range">النطاق</string>
+    <string name="player_info_decoder">فك الترميز</string>
+    <string name="player_info_hardware">عتادي</string>
+    <string name="player_info_software">برمجي</string>
+    <string name="player_info_software_allowed">السماح بالبرمجي</string>
+    <string name="player_info_yes">نعم</string>
+    <string name="player_info_no">لا</string>
+    <string name="player_info_history">أدوات فك الترميز المشغّلة</string>
+    <string name="player_info_per_second">المعروض/ث · المُسقَط/ث</string>
+    <string name="player_info_totals">المعروض · المُسقَط · المُتخطّى</string>
+    <string name="player_info_worst">أسوأ تتابع · حتى الإطار المفتاحي</string>
+    <string name="player_info_section_timing">على الشاشة</string>
+    <string name="player_info_gap">الفاصل بين الإطارات متوسط · أدنى–أقصى</string>
+    <string name="player_info_spread">التشتت · فواصل غير منتظمة</string>
+    <string name="player_info_last_second">آخر ثانية</string>
+    <string name="player_info_estimate">التقدير</string>
+    <string name="player_info_received">المستلَم</string>
+    <string name="player_info_last_byte">آخر بايت</string>
+    <string name="player_info_last_byte_ago">منذ %1$s</string>
+    <string name="player_info_retries">إعادة المحاولات · إعادة التخزين · التحميل</string>
+    <string name="player_info_reloads">إعادات التحميل توقف · تقطّع · فك الترميز · مباشر</string>
+    <string name="player_info_last_error">آخر خطأ</string>
+    <string name="player_info_model">الطراز</string>
+    <string name="player_info_display">الشاشة</string>
+    <string name="player_info_refresh_rates">معدلات التحديث</string>
+    <string name="player_info_app">Quiblo</string>
+    <string name="player_info_unknown">—</string>
+</resources>

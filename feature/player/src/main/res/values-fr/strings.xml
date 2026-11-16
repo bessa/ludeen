@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Quiblo — a free, open source IPTV player.
+  Copyright (C) 2026 The Quiblo Authors
+  Licensed under the GNU General Public License v3.0 or later. See LICENSE.
+-->
+<resources>
+    <string name="feature_player_title">Lecteur</string>
+    <string name="feature_player_empty">La lecture s\'ouvre ici.</string>
+
+    <string name="player_play">Lire</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_back">Retour</string>
+    <string name="player_retry">Réessayer</string>
+    <string name="player_tracks">Audio et sous-titres</string>
+    <string name="player_audio">Audio</string>
+    <string name="player_subtitles">Sous-titres</string>
+    <string name="player_subtitles_off">Désactivés</string>
+
+    <string name="player_subtitles_add_file">Ajouter un fichier de sous-titres…</string>
+    <string name="player_subtitles_remove_file">Retirer le fichier ajouté</string>
+    <string name="player_subtitles_attached">Fichier de sous-titres chargé. Choisissez-le dans Sous-titres.</string>
+    <string name="player_subtitles_not_subtitles">Ce fichier ne ressemble pas à des sous-titres.</string>
+    <string name="player_subtitles_unreadable">Impossible d\'ouvrir ce fichier.</string>
+    <string name="player_subtitles_too_large">Ce fichier est trop volumineux pour être des sous-titres.</string>
+    <string name="player_subtitles_no_picker">Cet appareil n\'a aucune application pour choisir des fichiers.</string>
+    <string name="player_subtitles_failed">Impossible de charger ces sous-titres. Le film continue sans eux.</string>
+    <string name="player_subtitles_untitled">Sous-titres</string>
+    <string name="player_subtitles_fetching">%1$s (chargement…)</string>
+    <string name="player_subtitles_unavailable">%1$s (indisponible)</string>
+
+    <string name="player_subtitles_size">Taille des sous-titres</string>
+    <string name="player_subtitles_text_colour">Couleur des sous-titres</string>
+    <string name="player_subtitles_background">Fond des sous-titres</string>
+    <string name="player_subtitles_match_system">Comme le système</string>
+    <string name="player_subtitles_size_small">Petite</string>
+    <string name="player_subtitles_size_medium">Moyenne</string>
+    <string name="player_subtitles_size_large">Grande</string>
+    <string name="player_subtitles_size_extra_large">Très grande</string>
+    <string name="player_subtitles_colour_white">Blanc</string>
+    <string name="player_subtitles_colour_yellow">Jaune</string>
+    <string name="player_subtitles_colour_black">Noir</string>
+    <string name="player_subtitles_background_none">Aucun</string>
+    <string name="player_subtitles_background_light">Léger</string>
+    <string name="player_subtitles_background_solid">Opaque</string>
+    <string name="player_close">Fermer</string>
+    <string name="player_live">DIRECT</string>
+    <string name="player_reconnecting">Reconnexion… (tentative %1$d)</string>
+
+    <string name="player_a11y_buffering">Mise en mémoire tampon</string>
+
+    <string name="player_error_network">Connexion à ce flux perdue.</string>
+    <string name="player_error_unreachable">Impossible de joindre ce flux.</string>
+    <string name="player_error_timeout">Ce flux n\'a pas répondu à temps.</string>
+    <string name="player_error_format">Ce flux est dans un format que Quiblo ne peut pas lire.</string>
+    <string name="player_error_drm">Ce flux est protégé contre la copie. Quiblo ne prend pas en charge les DRM.</string>
+    <string name="player_error_gone">Ce flux n\'est plus disponible à cette adresse.</string>
+    <string name="player_error_auth">Votre fournisseur n\'a pas accepté le nom d\'utilisateur ou le mot de passe de ce compte.</string>
+    <string name="player_error_refused">Votre fournisseur a refusé ce flux. Il est peut-être utilisé sur un autre écran.</string>
+    <string name="player_error_unknown">Impossible de lire ce flux.</string>
+
+    <string name="player_checking_why">Recherche de la cause…</string>
+    <string name="player_side_connection">Votre connexion</string>
+    <string name="player_side_subscription">Votre abonnement</string>
+    <string name="player_side_provider">Votre fournisseur</string>
+    <string name="player_side_quiblo">Quiblo</string>
+    <string name="player_side_unknown">Incertain</string>
+
+    <string name="player_verdict_offline">Cet appareil n\'est pas connecté à Internet.</string>
+    <string name="player_verdict_expired_on">Votre abonnement a pris fin le %1$s.</string>
+    <string name="player_verdict_expired">Votre abonnement a pris fin.</string>
+    <string name="player_verdict_disabled">Votre fournisseur a désactivé ce compte.</string>
+    <string name="player_verdict_credentials">Votre fournisseur n\'accepte plus ce nom d\'utilisateur ou ce mot de passe.</string>
+    <string name="player_verdict_limit_count">Votre compte est déjà utilisé sur %1$d des %2$d écrans autorisés.</string>
+    <string name="player_verdict_limit">Votre compte est déjà utilisé sur tous les écrans autorisés.</string>
+    <string name="player_verdict_provider_down">Le serveur de votre fournisseur ne répond pas. Cet appareil et Quiblo fonctionnent correctement.</string>
+    <string name="player_verdict_blocking">Votre fournisseur refuse temporairement les requêtes de cet appareil.</string>
+    <string name="player_verdict_channel_offline">Votre abonnement est actif, mais cette chaîne ne diffuse pas en ce moment.</string>
+    <string name="player_verdict_channel_missing">Votre fournisseur ne propose rien à l\'adresse de cette chaîne pour le moment.</string>
+    <string name="player_verdict_format">Le flux est accessible, mais Quiblo ne peut pas lire son format sur cet appareil.</string>
+    <string name="player_verdict_app">Quiblo a rencontré une erreur en lisant un flux fonctionnel. C\'est un bug de Quiblo.</string>
+    <string name="player_verdict_undetermined">Impossible de déterminer si le problème vient de votre compte, du fournisseur ou de Quiblo.</string>
+
+    <string name="player_advice_offline">Vérifiez le Wi-Fi ou la connexion réseau, puis réessayez.</string>
+    <string name="player_advice_expired">Renouvelez auprès de votre fournisseur, puis réessayez.</string>
+    <string name="player_advice_disabled">Contactez votre fournisseur.</string>
+    <string name="player_advice_credentials">Vérifiez le nom d\'utilisateur et le mot de passe de cette source auprès de votre fournisseur.</string>
+    <string name="player_advice_limit">Arrêtez la lecture sur un autre écran, puis réessayez.</string>
+    <string name="player_advice_provider_down">Réessayez plus tard.</string>
+    <string name="player_advice_blocking">Patientez quelques minutes, puis réessayez.</string>
+    <string name="player_advice_channel_offline">Essayez une autre chaîne.</string>
+    <string name="player_advice_report">Merci de le signaler, avec les détails ci-dessous.</string>
+    <string name="player_advice_undetermined">Réessayez. Si l\'échec persiste, les détails ci-dessous indiquent ce qui a été constaté.</string>
+
+    <string name="player_copy_details">Copier les détails</string>
+    <string name="player_details_copied">Détails copiés</string>
+
+    <string name="player_start_over">Recommencer</string>
+    <string name="player_swap_lock">Déplacer le bouton de verrouillage de l\'autre côté</string>
+    <string name="player_lock">Verrouiller l\'écran</string>
+    <string name="player_unlock">Déverrouiller l\'écran</string>
+    <string name="player_skip_back">Reculer de %1$d secondes</string>
+    <string name="player_skip_forward">Avancer de %1$d secondes</string>
+
+    <string name="player_aspect_ratio">Format d\'image : %1$s</string>
+    <string name="player_aspect_fit">Ajuster</string>
+    <string name="player_aspect_fill">Remplir</string>
+    <string name="player_aspect_zoom">Zoom</string>
+    <string name="player_aspect_stretch">Étirer</string>
+
+    <string name="player_brightness">Luminosité</string>
+    <string name="player_volume">Volume</string>
+
+    <string name="player_info_open">Infos de lecture</string>
+    <string name="player_info_title">Infos de lecture · %1$s</string>
+    <string name="player_info_collecting">Collecte…</string>
+    <string name="player_info_section_stream">Flux</string>
+    <string name="player_info_section_video">Vidéo</string>
+    <string name="player_info_section_audio">Audio</string>
+    <string name="player_info_section_frames">Images</string>
+    <string name="player_info_section_network">Réseau</string>
+    <string name="player_info_section_recovery">Récupération</string>
+    <string name="player_info_section_device">Appareil</string>
+    <string name="player_info_state">État</string>
+    <string name="player_info_kind">Type</string>
+    <string name="player_info_kind_live">Direct</string>
+    <string name="player_info_kind_vod">Film ou épisode</string>
+    <string name="player_info_playing">lecture</string>
+    <string name="player_info_paused">en pause</string>
+    <string name="player_info_container">Conteneur</string>
+    <string name="player_info_position">Position</string>
+    <string name="player_info_buffered">Tampon disponible</string>
+    <string name="player_info_buffer_setting">Tampon · plafond</string>
+    <string name="player_info_no_cap">aucun</string>
+    <string name="player_info_engine_items">Éléments sur ce moteur</string>
+    <string name="player_info_codec">Codec</string>
+    <string name="player_info_size">Taille</string>
+    <string name="player_info_bitrate">Débit</string>
+    <string name="player_info_range">Plage</string>
+    <string name="player_info_decoder">Décodeur</string>
+    <string name="player_info_hardware">matériel</string>
+    <string name="player_info_software">LOGICIEL</string>
+    <string name="player_info_software_allowed">Logiciel autorisé</string>
+    <string name="player_info_yes">oui</string>
+    <string name="player_info_no">non</string>
+    <string name="player_info_history">Décodeurs démarrés</string>
+    <string name="player_info_per_second">Rendues/s · perdues/s</string>
+    <string name="player_info_totals">Rendues · perdues · ignorées</string>
+    <string name="player_info_worst">Pire série · jusqu\'à l\'image clé</string>
+    <string name="player_info_section_timing">À l\'écran</string>
+    <string name="player_info_gap">Écart entre images moy · min–max</string>
+    <string name="player_info_spread">Dispersion · écarts irréguliers</string>
+    <string name="player_info_last_second">Dernière seconde</string>
+    <string name="player_info_estimate">Estimation</string>
+    <string name="player_info_received">Reçu</string>
+    <string name="player_info_last_byte">Dernier octet</string>
+    <string name="player_info_last_byte_ago">il y a %1$s</string>
+    <string name="player_info_retries">Tentatives · rechargements tampon · chargement</string>
+    <string name="player_info_reloads">Rechargements blocage · saccade · décodeur · direct</string>
+    <string name="player_info_last_error">Dernière erreur</string>
+    <string name="player_info_model">Modèle</string>
+    <string name="player_info_display">Écran</string>
+    <string name="player_info_refresh_rates">Fréquences de rafraîchissement</string>
+    <string name="player_info_app">Quiblo</string>
+    <string name="player_info_unknown">—</string>
+</resources>

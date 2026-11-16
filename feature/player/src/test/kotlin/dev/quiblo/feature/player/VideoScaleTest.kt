@@ -127,4 +127,30 @@ class VideoScaleTest {
             assertEquals(1f to 1f, videoScale(widescreen, bad, AspectRatioMode.FIT))
         }
     }
+
+    @Test
+    fun `a forced shape is drawn whatever the stream says, without overflowing`() {
+        val shapes = mapOf(
+            AspectRatioMode.RATIO_4_3 to fourThree,
+            AspectRatioMode.RATIO_16_9 to widescreen,
+            AspectRatioMode.RATIO_21_9 to 21f / 9f,
+            AspectRatioMode.RATIO_1_1 to 1f,
+        )
+        shapes.forEach { (mode, expected) ->
+            // A 4:3 source, a 16:9 source, and no frame yet: the forced shape wins every time.
+            listOf(fourThree, widescreen, null).forEach { source ->
+                val scale = videoScale(source, widescreen, mode)
+                assertEquals(expected, renderedAspect(widescreen, scale), tolerance, "$mode from $source")
+                assertTrue(scale.first <= 1f + tolerance && scale.second <= 1f + tolerance, "$mode overflowed")
+            }
+        }
+    }
+
+    @Test
+    fun `a forced 4 by 3 on a wide screen fills the height and leaves bars at the sides`() {
+        val scale = videoScale(widescreen, widescreen, AspectRatioMode.RATIO_4_3)
+
+        assertEquals(1f, scale.second, tolerance)
+        assertEquals(0.75f, scale.first, tolerance)
+    }
 }
