@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.Source
 import dev.quiblo.core.model.SourceKind
 import dev.quiblo.feature.sources.AddSourceState
@@ -167,6 +168,7 @@ fun TvSourcesScreen(
                 addState = addState,
                 onAdd = { showForm = true },
                 onRefresh = viewModel::refresh,
+                onRefreshKind = viewModel::refreshKind,
                 onEdit = { editing = it },
                 onDelete = viewModel::delete,
                 onDismissResult = viewModel::dismissResult,
@@ -214,6 +216,7 @@ private fun SourceList(
     addState: AddSourceState,
     onAdd: () -> Unit,
     onRefresh: (Long) -> Unit,
+    onRefreshKind: (Long, MediaKind) -> Unit,
     onEdit: (Source) -> Unit,
     onDelete: (Long) -> Unit,
     onDismissResult: () -> Unit,
@@ -255,6 +258,7 @@ private fun SourceList(
             SourceRow(
                 source = source,
                 onRefresh = { onRefresh(source.id) },
+                onRefreshKind = { kind -> onRefreshKind(source.id, kind) },
                 onEdit = { onEdit(source) },
                 onDelete = { onDelete(source.id) },
             )
@@ -286,7 +290,13 @@ private fun ResultBanner(addState: AddSourceState, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun SourceRow(source: Source, onRefresh: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+private fun SourceRow(
+    source: Source,
+    onRefresh: () -> Unit,
+    onRefreshKind: (MediaKind) -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .width(FORM_WIDTH)
@@ -311,12 +321,35 @@ private fun SourceRow(source: Source, onRefresh: () -> Unit, onEdit: () -> Unit,
             modifier = Modifier.padding(bottom = 8.dp),
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Refresh on demand, all at once or one kind at a time. Nothing reloads by itself: the
+        // playlist stays as it was last loaded until one of these is pressed.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(bottom = 12.dp),
+        ) {
             TvFocusRow(
-                label = stringResource(R.string.tv_sources_refresh),
+                label = stringResource(R.string.tv_sources_refresh_all),
                 onClick = onRefresh,
-                modifier = Modifier.width(BUTTON_WIDTH),
+                modifier = Modifier.width(REFRESH_BUTTON_WIDTH),
             )
+            TvFocusRow(
+                label = stringResource(R.string.tv_sources_refresh_live),
+                onClick = { onRefreshKind(MediaKind.LIVE) },
+                modifier = Modifier.width(REFRESH_BUTTON_WIDTH),
+            )
+            TvFocusRow(
+                label = stringResource(R.string.tv_sources_refresh_movies),
+                onClick = { onRefreshKind(MediaKind.VOD) },
+                modifier = Modifier.width(REFRESH_BUTTON_WIDTH),
+            )
+            TvFocusRow(
+                label = stringResource(R.string.tv_sources_refresh_series),
+                onClick = { onRefreshKind(MediaKind.SERIES) },
+                modifier = Modifier.width(REFRESH_BUTTON_WIDTH),
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             TvFocusRow(
                 label = stringResource(R.string.tv_sources_edit),
                 onClick = onEdit,
@@ -330,3 +363,6 @@ private fun SourceRow(source: Source, onRefresh: () -> Unit, onEdit: () -> Unit,
         }
     }
 }
+
+/** Four across the form's width, with the gaps between them. */
+private val REFRESH_BUTTON_WIDTH = 171.dp

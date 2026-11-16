@@ -20,6 +20,7 @@ package dev.quiblo.source.api
 
 import dev.quiblo.core.model.Channel
 import dev.quiblo.core.model.LiveFormat
+import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.SourceKind
 
 /**
@@ -93,6 +94,13 @@ data class SourceRequest(
     val liveFormat: LiveFormat = LiveFormat.AUTO,
     /** What the provider last said this account may use; see [SourceResult.Success.allowedLiveFormats]. */
     val allowedLiveFormats: Set<String>? = null,
+    /**
+     * Load only this kind of content, or everything when null.
+     *
+     * A source that can ask for one kind separately (Xtream) asks only for it. One that cannot (an
+     * M3U is a single file) may return everything, and the caller keeps only this kind.
+     */
+    val onlyKind: MediaKind? = null,
 )
 
 /** The outcome of a [MediaSource.load] call. */

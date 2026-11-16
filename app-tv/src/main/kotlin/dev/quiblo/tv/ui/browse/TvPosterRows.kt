@@ -366,15 +366,49 @@ private fun TvCategoryShelves(
     // function has to know anything about wording at all.
     val kindLabels = MediaKind.entries.associateWith { stringResource(it.labelRes) }
 
+    // The Recently Added row heads the shelves. Its heading says which kind of "recent" it is:
+    // dated by the provider, or only the end of a playlist that dates nothing.
+    val recentTitle = stringResource(
+        if (state.recentOrderedByDate) R.string.tv_row_recently_added else R.string.tv_row_latest_in_playlist,
+    )
+
+    /*
+     * The list the player zaps along: the recent row first, then the shelves, and every tile's
+     * index points into it. A film in both places appears twice, as it does on screen.
+     */
+    val playList = remember(state.recentItems, state.items) { state.recentItems + state.items }
+
     val rows by produceState(
         initialValue = emptyList<TvCategoryRow>(),
         state.items,
+        state.recentItems,
         state.categories,
         favouritesOnly,
         kindLabels,
+        recentTitle,
     ) {
         value = withContext(Dispatchers.Default) {
-            groupIntoRows(state.items, state.categories.map { it.title }, favouritesOnly, kindLabels)
+            val recentRow = state.recentItems.takeIf { it.isNotEmpty() && !favouritesOnly }?.let { recent ->
+                TvCategoryRow(
+                    title = recentTitle,
+                    // Keys are prefixed so a title here and in its own shelf stay distinct tiles —
+                    // the remembered focus and the focus frame both go by key.
+                    items = recent.mapIndexed { index, channel ->
+                        TvRowItem(TvTile(channel).copy(key = RECENT_KEY_PREFIX + channel.stableKey), index)
+                    },
+                    // The row key as well: a provider category may well be called "Recently Added".
+                    key = RECENT_ROW_KEY,
+                )
+            }
+            val shelves = groupIntoRows(
+                state.items,
+                state.categories.map { it.title },
+                favouritesOnly,
+                kindLabels,
+                indexOffset = if (recentRow == null) 0 else state.recentItems.size,
+                displayNames = state.categories.associate { it.title to it.displayTitle },
+            )
+            listOfNotNull(recentRow) + shelves
         }
     }
 
@@ -405,7 +439,7 @@ private fun TvCategoryShelves(
                     // The position travels with the item rather than being searched for. It is
                     // indexed against the flat list so zapping walks every item on screen, not just
                     // the row the viewer happened to start in.
-                    onItemClick = { item -> onPlay(state.items, item.flatIndex) },
+                    onItemClick = { item -> onPlay(playList, item.flatIndex) },
                     modifier = listModifier,
                     // First, above the catalogue, because it is what a returning viewer came for.
                     // Empty on Favourites and on Live, which the ViewModel decides — a channel is
@@ -593,7 +627,7 @@ internal fun TvCategoryList(
                 }
             }
 
-            items(items = rows, key = { it.title }) { row ->
+            items(items = rows, key = { it.key ?: it.title }) { row ->
                 val rowModifier = if (header != null) {
                     Modifier.padding(horizontal = ROW_HORIZONTAL_PADDING)
                 } else {
@@ -648,7 +682,12 @@ internal data class TvCategoryRow(
      * what finding that cost.
      */
     val style: TvRowStyle = TvRowStyle.POSTER,
+    /** The list key, when the title alone is not unique — the Recently Added row. */
+    val key: String? = null,
 )
+
+private const val RECENT_ROW_KEY = "row:recently-added"
+private const val RECENT_KEY_PREFIX = "recent:"
 
 /** The two shapes a row of tiles comes in. */
 internal enum class TvRowStyle {
@@ -695,6 +734,9 @@ internal data class TvTile(
     val artworkUrl: String?,
     val channel: Channel?,
 ) {
+    /** What ratings and posters are keyed by: the title's own key, whatever row prefix [key] carries. */
+    val lookupKey: String get() = channel?.stableKey ?: key
+
     constructor(channel: Channel) : this(
         key = channel.stableKey,
         name = channel.name,
@@ -744,9 +786,14 @@ private fun groupIntoRows(
     categoryOrder: List<String>,
     favouritesOnly: Boolean,
     kindLabels: Map<MediaKind, String>,
+    /** Added to every tile's flat index, for rows drawn above these in the same play list. */
+    indexOffset: Int = 0,
+    /** Headings to show in place of the provider's names: the viewer's renames. */
+    displayNames: Map<String, String> = emptyMap(),
 ): List<TvCategoryRow> {
     val grouped = LinkedHashMap<String, MutableList<TvRowItem>>()
-    items.forEachIndexed { index, channel ->
+    items.forEachIndexed { position, channel ->
+        val index = position + indexOffset
         // Favourites groups by kind, and the heading is the app's word for that kind — not the
         // enum constant, which is how these rows came to be headed "VOD" and "SERIES" (#017).
         val title = if (favouritesOnly) {
@@ -771,10 +818,11 @@ private fun groupIntoRows(
         return grouped.map { (title, rowItems) -> TvCategoryRow(title, rowItems) }
     }
 
+    // `categoryOrder` is already in the viewer's chosen order (provider, A–Z or by language).
     val ranked = categoryOrder.withIndex().associate { (index, title) -> title to index }
     return grouped.entries
         .sortedBy { ranked[it.key] ?: Int.MAX_VALUE }
-        .map { (title, rowItems) -> TvCategoryRow(title, rowItems) }
+        .map { (title, rowItems) -> TvCategoryRow(displayNames[title] ?: title, rowItems, key = "cat:$title") }
 }
 
 @Composable
@@ -829,8 +877,8 @@ private fun CategoryRow(
                     }
                     TvPoster(
                         tile = item.tile,
-                        rating = ratings[item.tile.key],
-                        fallbackArtworkUrl = posters[item.tile.key],
+                        rating = ratings[item.tile.lookupKey],
+                        fallbackArtworkUrl = posters[item.tile.lookupKey],
                         showKindBadge = showKindBadge,
                         onClick = { onItemClick(item) },
                         // Only the one tile carries the requester. Two nodes sharing a

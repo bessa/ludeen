@@ -62,7 +62,7 @@ import dev.quiblo.core.database.entity.WatchEventEntity
  * constant, so the version the app ships and the version the upgrade path is tested against
  * cannot drift apart.
  */
-const val SCHEMA_VERSION = 26
+const val SCHEMA_VERSION = 27
 
 /**
  * Every migration, in order, in one place.
@@ -98,6 +98,7 @@ val ALL_MIGRATIONS = arrayOf(
     MIGRATION_23_24,
     MIGRATION_24_25,
     MIGRATION_25_26,
+    MIGRATION_26_27,
 )
 
 /**

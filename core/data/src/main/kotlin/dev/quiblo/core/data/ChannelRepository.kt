@@ -251,6 +251,49 @@ class ChannelRepository(
                     }.map { it.channel.toDomain(isFavorite = it.isFavorite) }
                 }
             }
+
+    /** [pagedBrowse] over several categories at once — one country or type group on the Live screen. */
+    fun pagedBrowseInGroups(
+        sourceId: Long,
+        kind: MediaKind,
+        groupTitles: List<String>,
+        query: String = "",
+        favoritesOnly: Boolean = false,
+    ): Flow<PagingData<Channel>> =
+        combine(profiles.activeProfile, hiddenScripts, mergeDuplicates, ::Ask)
+            .flatMapLatest { (profile, hidden, merge) ->
+                Pager(
+                    config = PagingConfig(
+                        pageSize = PAGE_SIZE,
+                        // Two screenfuls ahead of the last visible row on the largest layout, so
+                        // a page is fetched before it is looked at rather than after.
+                        prefetchDistance = PAGE_SIZE,
+                        // Off. The whole point is not to hold the catalogue in memory; a
+                        // placeholder per unloaded row is a smaller version of the same mistake,
+                        // and a television grid has no scrollbar for them to make meaningful.
+                        enablePlaceholders = false,
+                        initialLoadSize = PAGE_SIZE * INITIAL_PAGES,
+                    ),
+                ) {
+                    channelDao.pagedBrowseInGroups(
+                        profileId = profile?.id ?: Profile.NONE_ID,
+                        sourceId = sourceId,
+                        kind = kind.name,
+                        groupTitles = groupTitles,
+                        query = escapeForLike(query.trim()),
+                        favoritesOnly = if (favoritesOnly) 1 else 0,
+                        includeHiddenCategories = if (favoritesOnly) 1 else 0,
+                        mergeDuplicates = if (merge) 1 else 0,
+                        hiddenMask = hidden.toMask(),
+                        unknownMask = SCRIPT_MASK_UNKNOWN,
+                    )
+                }.flow.map { page ->
+                    page.filter { row ->
+                        row.channel.scriptMask != SCRIPT_MASK_UNKNOWN ||
+                            !row.channel.name.isInHiddenScript(hidden)
+                    }.map { it.channel.toDomain(isFavorite = it.isFavorite) }
+                }
+            }
             .flowOn(browseDispatcher)
 
     /**
@@ -360,6 +403,37 @@ class ChannelRepository(
                     listOrderRecents(profileId, sourceId, limit)
                 }
             }
+            .flowOn(browseDispatcher)
+
+    /**
+     * The newest [limit] titles of one kind, for the Recently Added row on Movies and on Series.
+     *
+     * By the provider's dates when it gives any, with no time window. A playlist that dates
+     * nothing gets the end of its own list instead, newest-listed first — the same fallback, and
+     * the same honesty about it, as [observeRecentlyAdded].
+     */
+    fun observeNewestOfKind(sourceId: Long, kind: MediaKind, limit: Int): Flow<RecentlyAddedFeed> =
+        combine(
+            profiles.activeProfile,
+            channelDao.observeKindHasAddedDates(sourceId, kind.name).distinctUntilChanged(),
+            mergeDuplicates,
+        ) { profile, hasDates, merge -> Triple(profile?.id ?: Profile.NONE_ID, hasDates, merge) }
+            .flatMapLatest { (profileId, hasDates, merge) ->
+                if (hasDates) {
+                    channelDao.observeNewestOfKind(
+                        profileId = profileId,
+                        sourceId = sourceId,
+                        kind = kind.name,
+                        limit = limit,
+                        mergeDuplicates = if (merge) 1 else 0,
+                    ).map { rows ->
+                        RecentlyAddedFeed(rows.map { it.channel.toDomain(isFavorite = it.isFavorite) }, orderedByDate = true)
+                    }
+                } else {
+                    tail(profileId, sourceId, kind, limit).map { RecentlyAddedFeed(it, orderedByDate = false) }
+                }
+            }
+            .hidingUnreadableScriptsIn(hiddenScripts)
             .flowOn(browseDispatcher)
 
     private fun datedRecents(
@@ -595,6 +669,12 @@ class ChannelRepository(
  * list would leave the screen guessing, and the guess it would make — "non-empty, so these must be
  * new" — is the one that puts a wrong sentence over a right list.
  */
+private fun Flow<RecentlyAddedFeed>.hidingUnreadableScriptsIn(
+    hiddenScripts: Flow<Set<TitleScript>>,
+): Flow<RecentlyAddedFeed> = combine(this, hiddenScripts) { feed, hidden ->
+    if (hidden.isEmpty()) feed else feed.copy(items = feed.items.filterNot { it.name.isInHiddenScript(hidden) })
+}
+
 data class RecentlyAddedFeed(
     val items: List<Channel> = emptyList(),
     /** True when the provider dated these itself. False when the order is the playlist's own. */

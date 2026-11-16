@@ -134,7 +134,7 @@ internal fun TvCatalogueWithPreview(
             TvTitlePreview(
                 tile = current?.tile,
                 metadata = current?.metadata,
-                rating = current?.let { ratings[it.tile.key] ?: it.metadata?.rating },
+                rating = current?.let { ratings[it.tile.lookupKey] ?: it.metadata?.rating },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(bannerHeight),
@@ -174,7 +174,7 @@ private fun ReportBackdrop(lookup: PreviewLookup?, posters: Map<String, String>)
             backdrop,
             // A poster cropped to a letterbox is a forehead, so only when there is no still.
             lookup.tile.artworkUrl,
-            posters[lookup.tile.key],
+            posters[lookup.tile.lookupKey],
             metadata?.posterUrl,
         ).filter(String::isNotBlank).distinct()
     }

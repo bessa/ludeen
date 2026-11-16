@@ -23,6 +23,8 @@ import dev.quiblo.core.model.AppTab
 import dev.quiblo.core.model.Appearance
 import dev.quiblo.core.model.AutoNextDelay
 import dev.quiblo.core.model.BufferMode
+import dev.quiblo.core.model.CategorySort
+import dev.quiblo.core.model.LiveGrouping
 import dev.quiblo.core.model.MaxBitrateCap
 import dev.quiblo.core.model.PlayerSettings
 import dev.quiblo.core.model.Profile
@@ -113,6 +115,22 @@ class PlayerSettingsRepository(
 
     suspend fun setMergeCategories(enabled: Boolean) =
         store.setMergeCategories(profiles.activeProfileId, enabled)
+
+    /** How the Movies and Series shelves are ordered. Per profile. */
+    val categorySort: Flow<CategorySort> = perProfile(store::categorySort)
+
+    suspend fun setCategorySort(value: CategorySort) = store.setCategorySort(profiles.activeProfileId, value)
+
+    /** Languages whose Movies and Series shelves come first, in order. Per profile. */
+    val categoryLanguagesFirst: Flow<List<String>> = perProfile(store::categoryLanguagesFirst)
+
+    suspend fun setCategoryLanguagesFirst(value: List<String>) =
+        store.setCategoryLanguagesFirst(profiles.activeProfileId, value)
+
+    /** How the Live screen groups channels. Per profile, like the other browse choices. */
+    val liveGrouping: Flow<LiveGrouping> = perProfile(store::liveGrouping)
+
+    suspend fun setLiveGrouping(value: LiveGrouping) = store.setLiveGrouping(profiles.activeProfileId, value)
 
     /**
      * Which tabs this viewer has switched off (`029` #5).

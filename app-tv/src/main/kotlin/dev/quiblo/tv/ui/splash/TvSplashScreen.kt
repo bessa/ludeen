@@ -20,9 +20,11 @@ package dev.quiblo.tv.ui.splash
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.quiblo.designsystem.QuibloSplashScreen
+import dev.quiblo.tv.R
 
 /**
  * The launch screen, at the size a television is watched from.
@@ -57,6 +59,8 @@ fun TvSplashScreen(
         minDurationMillis = TV_SPLASH_MIN_DURATION_MILLIS.coerceAtMost(durationMillis),
         insetForSystemBars = false,
         playSound = playSound,
+        title = stringResource(R.string.tv_splash_title),
+        showMark = false,
         onPrepareReveal = onPrepareReveal,
         onRevealStart = onRevealStart,
         onSplashComplete = onSplashComplete,

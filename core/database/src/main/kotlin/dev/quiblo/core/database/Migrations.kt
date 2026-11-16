@@ -813,3 +813,16 @@ val MIGRATION_25_26 = object : Migration(25, 26) {
         db.execSQL("ALTER TABLE `sources` ADD COLUMN `allowedLiveFormats` TEXT DEFAULT NULL")
     }
 }
+
+/**
+ * 26 → 27: an index for the Movies and Series shelves, so each category's first rows are read
+ * straight off it rather than by numbering the whole kind. No rows touched.
+ */
+val MIGRATION_26_27 = object : Migration(26, 27) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_channels_sourceId_kind_groupTitle_sortIndex` " +
+                "ON `channels` (`sourceId`, `kind`, `groupTitle`, `sortIndex`)",
+        )
+    }
+}

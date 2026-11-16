@@ -4,6 +4,28 @@
   Licensed under the GNU General Public License v3.0 or later. See LICENSE.
 -->
 
+> **Ludeen by Bash — a personal fork of [Quiblo](https://github.com/quiblo-iptv/quiblo-app).**
+>
+> This repository is a fork of Quiblo, the free and open source IPTV player, adapted for the
+> Android TV app and built with [Claude Code](https://claude.com/claude-code). It is not the
+> official Quiblo and is not endorsed by its authors. Quiblo is licensed under the GNU GPL v3.0
+> or later, and so is this fork; the original copyright notices are kept.
+>
+> What this fork adds to the TV app (`app-tv`):
+>
+> - Rebranded as **Ludeen**: name, launcher icon, TV banner and splash screen.
+> - Movies and Series shelves ordered by provider, A–Z or language, with chosen languages first
+>   (for example Arabic, then English).
+> - A **Recently Added** row of the newest 50 titles at the top of Movies and of Series.
+> - A faster Movies and Series tab: shelves read per category from a new index (schema 27).
+> - A **Recent** tab of live channels last watched, and Live grouping by category, country or type.
+> - Refresh Live, Movies or Series separately; no automatic playlist reload in the background.
+> - Home shows only what you were watching; Search moved to the end of the tab bar.
+> - Backups export straight to Downloads; the update check is off by default.
+>
+> The rest of this README is Quiblo's own and describes the upstream project.
+
+
 <div align="center">
 
 <picture>

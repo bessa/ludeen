@@ -25,11 +25,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,17 +51,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.quiblo.designsystem.QuibloColours
 import dev.quiblo.designsystem.QuibloDisplayFamily
-import dev.quiblo.designsystem.QuibloMark
-import dev.quiblo.designsystem.QuibloWordmark
+import dev.quiblo.tv.R
 import dev.quiblo.tv.ui.common.onTap
 
 /** The mark and the name, at the head of the bar. Decoration: the remote never rests on it. */
 @Composable
 internal fun TvBarLockup(modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        QuibloMark(colour = QuibloColours.Paper, modifier = Modifier.size(LOCKUP_MARK_SIZE))
-        Spacer(modifier = Modifier.width(LOCKUP_GAP))
-        QuibloWordmark(height = LOCKUP_WORD_HEIGHT)
+        Text(
+            text = stringResource(R.string.tv_bar_brand),
+            color = QuibloColours.Paper,
+            fontSize = LOCKUP_TEXT_SIZE,
+            fontFamily = QuibloDisplayFamily,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 
@@ -178,9 +179,7 @@ private fun TabLabel(
 }
 
 // The proposal's bar, in its own proportions, at a size that reads from a sofa.
-private val LOCKUP_MARK_SIZE = 30.dp
-private val LOCKUP_GAP = 9.dp
-private val LOCKUP_WORD_HEIGHT = 26.dp
+private val LOCKUP_TEXT_SIZE = 26.sp
 private val TAB_TEXT_SIZE = 20.sp
 private val TAB_GAP = 4.dp
 private val PILL_PADDING_H = 14.dp

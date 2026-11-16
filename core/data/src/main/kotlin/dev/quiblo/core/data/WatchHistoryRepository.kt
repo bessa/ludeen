@@ -169,6 +169,36 @@ class WatchHistoryRepository(
         )
     }
 
+    /**
+     * Records that a live channel was tuned to, for the Recent tab.
+     *
+     * Stored beside the VOD history with kind LIVE, so every existing query — all of which filter
+     * by kind — keeps ignoring it. Position is always zero: a channel is not resumed, only
+     * returned to. Re-tuning the same channel just moves it to the top.
+     */
+    suspend fun recordLiveChannel(sourceId: Long, stableKey: String, title: String, logoUrl: String?) {
+        saveProgress(
+            HistoryEntry(
+                stableKey = stableKey,
+                sourceId = sourceId,
+                kind = MediaKind.LIVE,
+                title = title,
+                artworkUrl = logoUrl,
+            ),
+        )
+    }
+
+    /** The most recently tuned live channels, newest first. See [recordLiveChannel]. */
+    fun observeRecentLive(sourceId: Long, limit: Int = RECENT_LIVE_LIMIT): Flow<List<HistoryEntry>> =
+        profiles.activeProfile.flatMapLatest { profile ->
+            resumePositionDao.observeHistory(
+                profileId = profile?.id ?: Profile.NONE_ID,
+                sourceId = sourceId,
+                kind = MediaKind.LIVE.name,
+                limit = limit,
+            )
+        }.map { rows -> rows.map { it.toDomain() } }
+
     /** Forgets one item, resume point and all. */
     suspend fun removeFromHistory(stableKey: String) =
         resumePositionDao.delete(profiles.activeProfileId, stableKey)
@@ -180,6 +210,9 @@ class WatchHistoryRepository(
     private companion object {
         /** How many titles a "continue watching" row offers before it is just a catalogue. */
         const val DEFAULT_HISTORY_LIMIT = 20
+
+        /** How many live channels the Recent tab lists. */
+        const val RECENT_LIVE_LIMIT = 100
 
         /**
          * How many rows are read before collapsing episodes to their series.

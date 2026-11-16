@@ -33,15 +33,16 @@ import org.junit.jupiter.api.Test
 class TvTabOrderTest {
 
     @Test
-    fun `the bar reads home, search, live, movies, series, favourites`() {
+    fun `the bar reads home, live, recent, movies, series, favourites, search`() {
         assertEquals(
             listOf(
                 TvTab.FOR_YOU,
-                TvTab.SEARCH,
                 TvTab.LIVE,
+                TvTab.RECENT,
                 TvTab.MOVIES,
                 TvTab.SERIES,
                 TvTab.FAVOURITES,
+                TvTab.SEARCH,
             ),
             TvTab.entries,
         )

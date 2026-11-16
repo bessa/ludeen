@@ -86,7 +86,9 @@ class QuibloTvApplication : Application(), Configuration.Provider {
         // is what makes that safe: `UPDATE` would restart the interval each time the app opened,
         // so a household that opens Quiblo every evening would never reach four days and the sync
         // would silently never run — for exactly the viewers who use the app most.
-        getKoin().get<SyncScheduler>().schedule()
+        // No scheduled catalogue reload in this build: the playlist is kept as stored and only
+        // reloaded from Settings → Sources, on demand.
+        getKoin().get<SyncScheduler>().scheduleWithoutCatalogueSync()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             profiles.beginSession()

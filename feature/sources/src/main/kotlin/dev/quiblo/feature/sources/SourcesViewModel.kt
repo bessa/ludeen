@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import dev.quiblo.core.data.RefreshOutcome
 import dev.quiblo.core.data.SourceRepository
 import dev.quiblo.core.model.LiveFormat
+import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.Source
 import dev.quiblo.core.model.SourceKind
 import dev.quiblo.source.api.Credentials
@@ -179,6 +180,20 @@ class SourcesViewModel(
         _addState.value = AddSourceState.Working
         viewModelScope.launch {
             when (val outcome = repository.refresh(sourceId)) {
+                is RefreshOutcome.Failure -> _addState.value = AddSourceState.Failed(outcome.error)
+                is RefreshOutcome.Success -> _addState.value = AddSourceState.Added(
+                    channelCount = outcome.report.parsedEntries,
+                    skippedEntries = outcome.report.skippedEntries,
+                )
+            }
+        }
+    }
+
+    /** Reloads one kind only — live, films or series — and leaves the others as they are. */
+    fun refreshKind(sourceId: Long, kind: MediaKind) {
+        _addState.value = AddSourceState.Working
+        viewModelScope.launch {
+            when (val outcome = repository.refreshKind(sourceId, kind)) {
                 is RefreshOutcome.Failure -> _addState.value = AddSourceState.Failed(outcome.error)
                 is RefreshOutcome.Success -> _addState.value = AddSourceState.Added(
                     channelCount = outcome.report.parsedEntries,

@@ -129,6 +129,13 @@ fun QuibloSplashScreen(
     minDurationMillis: Long = durationMillis,
     insetForSystemBars: Boolean = true,
     playSound: Boolean = true,
+    /** Text to show under the mark instead of the Quiblo wordmark, or null for the wordmark. */
+    title: String? = null,
+    /**
+     * Whether to draw the Quiblo mark. Off, the screen is plain ink with [title] in the middle,
+     * and the dive becomes a fade of that ink over the same span, so the timing is unchanged.
+     */
+    showMark: Boolean = true,
     /** The mark has landed: compose what the dive will fly into, while there is time. */
     onPrepareReveal: () -> Unit = {},
     /** The dive has begun. */
@@ -184,6 +191,10 @@ fun QuibloSplashScreen(
         // until the mark has a place, so the first frame is never the app showing through.
         Canvas(modifier = Modifier.fillMaxSize()) {
             val frame = SplashFrame.at(clock.value, diveAt)
+            if (!showMark) {
+                drawRect(QuibloColours.Ink, alpha = frame.counterInk)
+                return@Canvas
+            }
             if (!markCentre.isSpecified) {
                 drawRect(QuibloColours.Ink)
                 return@Canvas
@@ -201,7 +212,7 @@ fun QuibloSplashScreen(
                 .fillMaxSize()
                 .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
         ) {
-            if (!markCentre.isSpecified) return@Canvas
+            if (!showMark || !markCentre.isSpecified) return@Canvas
             val frame = SplashFrame.at(clock.value, diveAt)
             onTheMark(markCentre, unitPx * frame.scale) {
                 with(geometry) { drawStrokes(QuibloColours.Paper, ring = frame.ring, tail = frame.tail) }
@@ -216,16 +227,29 @@ fun QuibloSplashScreen(
                 .then(insets),
         ) {
             // Where the mark goes. The canvases above draw it here, so the lockup centres as one.
-            Spacer(
-                modifier = Modifier
-                    .size(logoSize)
-                    .onGloballyPositioned { markCentre = it.boundsInRoot().center - origin },
-            )
-            Spacer(modifier = Modifier.height(logoTitleSpacing))
-            QuibloWordmark(
-                height = with(LocalDensity.current) { titleSize.toDp() },
-                modifier = Modifier.wipedIn(clock) { diveAt },
-            )
+            if (showMark) {
+                Spacer(
+                    modifier = Modifier
+                        .size(logoSize)
+                        .onGloballyPositioned { markCentre = it.boundsInRoot().center - origin },
+                )
+                Spacer(modifier = Modifier.height(logoTitleSpacing))
+            }
+            if (title == null) {
+                QuibloWordmark(
+                    height = with(LocalDensity.current) { titleSize.toDp() },
+                    modifier = Modifier.wipedIn(clock) { diveAt },
+                )
+            } else {
+                Text(
+                    text = title,
+                    color = QuibloColours.Paper,
+                    fontSize = titleSize,
+                    fontFamily = QuibloDisplayFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.wipedIn(clock) { diveAt },
+                )
+            }
         }
 
         Text(

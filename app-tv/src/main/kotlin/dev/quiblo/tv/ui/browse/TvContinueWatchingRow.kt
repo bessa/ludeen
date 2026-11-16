@@ -83,12 +83,13 @@ fun TvContinueWatchingRow(
     onClick: (HistoryEntry) -> Unit,
     onRemove: (HistoryEntry) -> Unit,
     modifier: Modifier = Modifier,
+    title: String = stringResource(R.string.tv_continue_watching),
 ) {
     if (entries.isEmpty()) return
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.tv_continue_watching),
+            text = title,
             color = Color.White.copy(alpha = 0.85f),
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,

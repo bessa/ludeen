@@ -28,6 +28,8 @@ import dev.quiblo.core.common.TitleScript
 import dev.quiblo.core.model.Appearance
 import dev.quiblo.core.model.AutoNextDelay
 import dev.quiblo.core.model.BufferMode
+import dev.quiblo.core.model.CategorySort
+import dev.quiblo.core.model.LiveGrouping
 import dev.quiblo.core.model.MaxBitrateCap
 import dev.quiblo.core.model.PlayerSettings
 import dev.quiblo.core.model.SeekInterval
@@ -218,6 +220,30 @@ class PlayerSettingsStore(context: Context) : ProfileScopedStore {
      * Off by default. The category shelves are the provider's own organisation of its catalogue,
      * and throwing that away is a choice.
      */
+    /** How the Movies and Series shelves are ordered. */
+    fun categorySort(profileId: Long): Flow<CategorySort> = dataStore.data.map { preferences ->
+        preferences.readEnum(CATEGORY_SORT, profileId, CategorySort.entries) { CategorySort.PROVIDER }
+    }
+
+    suspend fun setCategorySort(profileId: Long, value: CategorySort) = put(CATEGORY_SORT, profileId, value.name)
+
+    /** Languages whose shelves come first, in order — "Arabic,English". Empty for none. */
+    fun categoryLanguagesFirst(profileId: Long): Flow<List<String>> = dataStore.data.map { preferences ->
+        preferences.scopedString(CATEGORY_LANGUAGES_FIRST, profileId)
+            ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
+            .orEmpty()
+    }
+
+    suspend fun setCategoryLanguagesFirst(profileId: Long, value: List<String>) =
+        put(CATEGORY_LANGUAGES_FIRST, profileId, value.joinToString(","))
+
+    /** How the Live screen groups its channels: provider categories, country/language or type. */
+    fun liveGrouping(profileId: Long): Flow<LiveGrouping> = dataStore.data.map { preferences ->
+        preferences.readEnum(LIVE_GROUPING, profileId, LiveGrouping.entries) { LiveGrouping.PROVIDER }
+    }
+
+    suspend fun setLiveGrouping(profileId: Long, value: LiveGrouping) = put(LIVE_GROUPING, profileId, value.name)
+
     fun mergeCategories(profileId: Long): Flow<Boolean> = dataStore.data.map { preferences ->
         preferences.scopedBoolean(MERGE_CATEGORIES, profileId) ?: false
     }
@@ -266,13 +292,14 @@ class PlayerSettingsStore(context: Context) : ProfileScopedStore {
      * made by the television. A household where the answer depended on who pressed the profile
      * first would be a household that cannot tell whether the app phones out or not.
      *
-     * On by default, and there is no store here to be updated from — a sideloaded APK that never
+     * Off by default in this personal build (it is signed with a private key, so a release from
+     * the project could not be installed over it anyway). Upstream had it on: there is no store here to be updated from — a sideloaded APK that never
      * says it is out of date is how a security fix goes uninstalled for a year. What it costs is
      * one request to this project's own releases page at launch, which the consent copy now says.
      * Turning it off means no request is made at all, not that its answer is hidden.
      */
     val checkUpdatesOnLaunch: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[booleanPreferencesKey(CHECK_UPDATES_ON_LAUNCH)] ?: true
+        preferences[booleanPreferencesKey(CHECK_UPDATES_ON_LAUNCH)] ?: false
     }
 
     suspend fun setCheckUpdatesOnLaunch(enabled: Boolean) {
@@ -359,6 +386,9 @@ class PlayerSettingsStore(context: Context) : ProfileScopedStore {
         const val MATCH_FRAME_RATE = "match_frame_rate"
         const val MERGE_DUPLICATE_TITLES = "merge_duplicate_titles"
         const val MERGE_CATEGORIES = "merge_categories"
+        const val LIVE_GROUPING = "live_grouping"
+        const val CATEGORY_SORT = "category_sort"
+        const val CATEGORY_LANGUAGES_FIRST = "category_languages_first"
         const val HIDDEN_SCRIPTS = "hidden_scripts"
         const val HIDDEN_TABS = "hidden_tabs"
         const val SUBTITLE_MATCH_SYSTEM = "subtitle_match_system"

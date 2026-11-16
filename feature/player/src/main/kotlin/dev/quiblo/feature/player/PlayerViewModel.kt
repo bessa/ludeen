@@ -283,6 +283,18 @@ class PlayerViewModel(
                 episodeNumber = episodeNumber.takeIf { isEpisode },
             )
             val playbackKey = customUrl ?: channel.stableKey
+            // The Recent tab's history. Recorded on tune-in rather than on exit, because zapping
+            // through channels is how live is watched and every stop along the way counts.
+            if (channel.kind == MediaKind.LIVE) {
+                applicationScope.launch {
+                    historyRepository.recordLiveChannel(
+                        sourceId = channel.sourceId,
+                        stableKey = channel.stableKey,
+                        title = channel.name,
+                        logoUrl = channel.logoUrl,
+                    )
+                }
+            }
             _offeredSubtitles.value = offeredSubtitlesFor(channel.kind, channelId)
             prepare(
                 PlayableItem(

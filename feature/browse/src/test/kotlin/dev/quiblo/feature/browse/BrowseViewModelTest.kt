@@ -35,6 +35,7 @@ import dev.quiblo.core.data.TitleMetadataRepository
 import dev.quiblo.core.data.WatchHistoryRepository
 import dev.quiblo.core.model.Channel
 import dev.quiblo.core.model.FeedRowId
+import dev.quiblo.core.model.LiveGrouping
 import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.Source
 import dev.quiblo.core.model.SourceKind
@@ -95,6 +96,10 @@ class BrowseViewModelTest {
      */
     private val playerSettings: PlayerSettingsRepository = mockk(relaxed = true) {
         every { mergeCategories } returns flowOf(false)
+        // The same trap again for the Live grouping, which the live feed now also waits on.
+        every { liveGrouping } returns flowOf(LiveGrouping.PROVIDER)
+        every { categorySort } returns flowOf(dev.quiblo.core.model.CategorySort.PROVIDER)
+        every { categoryLanguagesFirst } returns flowOf(emptyList())
     }
 
     @BeforeEach

@@ -36,6 +36,8 @@ import dev.quiblo.core.model.Appearance
 import dev.quiblo.core.model.AutoNextDelay
 import dev.quiblo.core.model.BufferMode
 import dev.quiblo.core.model.Category
+import dev.quiblo.core.model.CategoryOrdering
+import dev.quiblo.core.model.CategorySort
 import dev.quiblo.core.model.MaxBitrateCap
 import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.PlayerSettings
@@ -301,6 +303,55 @@ class SettingsViewModel(
      */
     val mergeCategories: StateFlow<Boolean> = playerSettingsRepository.mergeCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), false)
+
+    /** How the Movies and Series shelves are ordered. */
+    val categorySort: StateFlow<CategorySort> = playerSettingsRepository.categorySort
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), CategorySort.PROVIDER)
+
+    fun setCategorySort(value: CategorySort) = viewModelScope.launch {
+        playerSettingsRepository.setCategorySort(value)
+    }
+
+    /** Languages whose Movies and Series shelves come first, in order. */
+    val categoryLanguagesFirst: StateFlow<List<String>> = playerSettingsRepository.categoryLanguagesFirst
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), emptyList())
+
+    /**
+     * Adds [language] to the end of the "first" list, or takes it out if it is already there.
+     * Pressing Arabic then English gives "Arabic first, then English".
+     */
+    fun toggleLanguageFirst(language: String) = viewModelScope.launch {
+        val current = categoryLanguagesFirst.value
+        playerSettingsRepository.setCategoryLanguagesFirst(
+            if (language in current) current - language else current + language,
+        )
+    }
+
+    /**
+     * The languages the films and series categories are in, most shelves first — what the
+     * "languages first" chips offer. Read from the category names, so it fits this playlist.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val categoryLanguages: StateFlow<List<String>> = sourceRepository.observeSources()
+        .map { it.firstOrNull()?.id }
+        .flatMapLatest { sourceId ->
+            if (sourceId == null) {
+                flowOf(emptyList())
+            } else {
+                combine(
+                    categoryRepository.observeAllCategories(sourceId, MediaKind.VOD),
+                    categoryRepository.observeAllCategories(sourceId, MediaKind.SERIES),
+                ) { films, series ->
+                    (films + series)
+                        .groupingBy { CategoryOrdering.languageOf(it.title) }
+                        .eachCount()
+                        .filterKeys { it != CategoryOrdering.OTHER }
+                        .entries.sortedByDescending { it.value }
+                        .map { it.key }
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), emptyList())
 
     fun setMergeCategories(enabled: Boolean) = viewModelScope.launch {
         playerSettingsRepository.setMergeCategories(enabled)

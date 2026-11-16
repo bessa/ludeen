@@ -62,6 +62,16 @@ class TvPlayerKeyMapTest {
     }
 
     @Test
+    fun `down zaps the opposite way to up on a live stream`() {
+        assertTrue(press(Key.DirectionDown, isSeekable = false, canZap = true))
+        assertEquals(1, zapped)
+        assertEquals(0, controlsShown)
+
+        assertTrue(press(Key.DirectionUp, isSeekable = false, canZap = true))
+        assertEquals(0, zapped)
+    }
+
+    @Test
     fun `channel keys never zap on a film`() {
         press(Key.ChannelUp, isSeekable = true, canZap = false)
         press(Key.DirectionUp, isSeekable = true, canZap = false)
@@ -112,11 +122,11 @@ class TvPlayerKeyMapTest {
     }
 
     @Test
-    fun `down opens the controls in both modes`() {
-        assertTrue(press(Key.DirectionDown, isSeekable = false, canZap = true))
+    fun `down opens the controls on a film`() {
         assertTrue(press(Key.DirectionDown, isSeekable = true, canZap = false))
 
-        assertEquals(2, controlsShown)
+        assertEquals(1, controlsShown)
+        assertEquals(0, zapped)
     }
 
     @Test

@@ -68,6 +68,7 @@ import androidx.paging.compose.itemKey
 import coil3.compose.SubcomposeAsyncImage
 import dev.quiblo.core.data.GuideOutcome
 import dev.quiblo.core.model.Channel
+import dev.quiblo.core.model.LiveGrouping
 import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.Programme
 import dev.quiblo.feature.browse.BrowseViewModel
@@ -75,6 +76,7 @@ import dev.quiblo.feature.browse.di.browseParams
 import dev.quiblo.tv.R
 import dev.quiblo.tv.ui.common.AmbientRequest
 import dev.quiblo.tv.ui.common.LocalAmbientSink
+import dev.quiblo.tv.ui.common.TvChip
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
@@ -171,12 +173,18 @@ fun TvLiveScreen(
                 // Only when there is a choice to make. A source with one category, or an M3U with
                 // none at all, gets the full width for its channels rather than a rail holding a
                 // single row (#002).
-                if (state.categories.size > 1) {
-                    TvCategoryRail(
-                        categories = state.categories,
-                        selectedCategory = state.selectedCategory,
-                        onSelect = viewModel::selectCategory,
-                    )
+                //
+                // The grouping chips sit above the rail and stay whenever grouping is on, even if
+                // that grouping produced a single group — otherwise there would be no way back.
+                if (state.categories.size > 1 || state.liveGrouping != LiveGrouping.PROVIDER) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        GroupingChips(selected = state.liveGrouping, onSelect = viewModel::setLiveGrouping)
+                        TvCategoryRail(
+                            categories = state.categories,
+                            selectedCategory = state.selectedCategory,
+                            onSelect = viewModel::selectCategory,
+                        )
+                    }
                 }
 
                 // A fresh state per category, so the list starts at the top when the filter
@@ -368,6 +376,28 @@ private fun ChannelRow(
             alpha = contentAlpha,
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+}
+
+/** Category / Country / Type: how the rail below is grouped. Chosen with a press, remembered per profile. */
+@Composable
+private fun GroupingChips(selected: LiveGrouping, onSelect: (LiveGrouping) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        LiveGrouping.entries.forEach { grouping ->
+            TvChip(
+                label = stringResource(
+                    when (grouping) {
+                        LiveGrouping.PROVIDER -> R.string.tv_live_group_provider
+                        LiveGrouping.COUNTRY -> R.string.tv_live_group_country
+                        LiveGrouping.TYPE -> R.string.tv_live_group_type
+                    },
+                ),
+                isSelected = grouping == selected,
+                onClick = { onSelect(grouping) },
+                horizontalPadding = 10.dp,
+                verticalPadding = 6.dp,
+            )
+        }
     }
 }
 

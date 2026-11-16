@@ -18,7 +18,11 @@
 
 package dev.quiblo.tv.ui.settings
 
+import android.content.ContentValues
+import android.content.Context
 import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -89,6 +93,7 @@ import dev.quiblo.core.model.AppTab
 import dev.quiblo.core.model.AutoNextDelay
 import dev.quiblo.core.model.BufferMode
 import dev.quiblo.core.model.Category
+import dev.quiblo.core.model.CategorySort
 import dev.quiblo.core.model.MaxBitrateCap
 import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.Profile
@@ -112,8 +117,11 @@ import dev.quiblo.tv.ui.common.TvTextField
 import dev.quiblo.tv.ui.common.tryRequestFocus
 import dev.quiblo.tv.ui.profiles.TvEditProfile
 import org.koin.androidx.compose.koinViewModel
+import java.io.IOException
 import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 /**
  * Settings, on a remote.
@@ -161,6 +169,9 @@ fun TvSettingsScreen(
     val showLiveInSearch by viewModel.showLiveInSearch.collectAsStateWithLifecycle()
     val mergeDuplicateTitles by viewModel.mergeDuplicateTitles.collectAsStateWithLifecycle()
     val mergeCategories by viewModel.mergeCategories.collectAsStateWithLifecycle()
+    val categorySort by viewModel.categorySort.collectAsStateWithLifecycle()
+    val languagesFirst by viewModel.categoryLanguagesFirst.collectAsStateWithLifecycle()
+    val categoryLanguages by viewModel.categoryLanguages.collectAsStateWithLifecycle()
     val hiddenTabs by viewModel.hiddenTabs.collectAsStateWithLifecycle()
     val checkUpdatesOnLaunch by viewModel.checkUpdatesOnLaunch.collectAsStateWithLifecycle()
     val ambientPlayer by viewModel.ambientPlayer.collectAsStateWithLifecycle()
@@ -198,15 +209,14 @@ fun TvSettingsScreen(
     // permission at all (AC-DATA-01, AC-TV-07). The same contracts the phone uses — a
     // television's document picker is the system's problem, not this screen's.
     val context = LocalContext.current
-    val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument(BACKUP_MIME_TYPE),
-    ) { uri: Uri? ->
-        if (uri == null) {
-            viewModel.dismiss()
-        } else {
-            viewModel.export { contents ->
-                context.contentResolver.openOutputStream(uri)?.use { it.write(contents.toByteArray()) }
-            }
+    // Export goes straight to Downloads — no picker, which on a television is often missing or
+    // awkward to drive with a remote. Import still uses the picker so any file can be chosen.
+    var exportedName by remember { mutableStateOf<String?>(null) }
+    val exportToDownloads: () -> Unit = {
+        val name = backupFileName()
+        viewModel.export { contents ->
+            writeToDownloads(context, name, contents)
+            exportedName = name
         }
     }
 
@@ -428,6 +438,37 @@ fun TvSettingsScreen(
             // way of knowing whether they are hiding it from the household or from themselves.
             item { Attribution(stringResource(R.string.tv_settings_category_whose)) }
 
+            // How the Movies and Series shelves are ordered. Live keeps its own grouping.
+            item {
+                OptionRow(
+                    label = stringResource(R.string.tv_settings_category_sort),
+                    description = stringResource(R.string.tv_settings_category_sort_detail),
+                    options = CategorySort.entries,
+                    selected = categorySort,
+                    labelFor = {
+                        stringResource(
+                            when (it) {
+                                CategorySort.PROVIDER -> R.string.tv_settings_category_sort_provider
+                                CategorySort.ALPHABETICAL -> R.string.tv_settings_category_sort_alphabetical
+                                CategorySort.LANGUAGE -> R.string.tv_settings_category_sort_language
+                            },
+                        )
+                    },
+                    onSelect = viewModel::setCategorySort,
+                )
+            }
+
+            if (categoryLanguages.isNotEmpty() || languagesFirst.isNotEmpty()) {
+                item {
+                    LanguagesFirstRow(
+                        // Chosen ones first, in their order, so the numbers read 1, 2, 3 left to right.
+                        languages = (languagesFirst + categoryLanguages).distinct().take(MAX_LANGUAGE_CHIPS),
+                        chosen = languagesFirst,
+                        onToggle = viewModel::toggleLanguageFirst,
+                    )
+                }
+            }
+
             item {
                 OptionRow(
                     label = stringResource(R.string.tv_settings_category_kind),
@@ -492,7 +533,8 @@ fun TvSettingsScreen(
             item {
                 BackupRow(
                     state = backupState,
-                    onExport = { exportLauncher.launch(BACKUP_FILE_NAME) },
+                    exportedName = exportedName,
+                    onExport = exportToDownloads,
                     onImport = { importLauncher.launch(arrayOf(BACKUP_MIME_TYPE, ANY_MIME_TYPE)) },
                 )
             }
@@ -1353,7 +1395,7 @@ private fun IconChip(
 
 /** Export and import, and whatever the last attempt had to say about itself. */
 @Composable
-private fun BackupRow(state: BackupUiState, onExport: () -> Unit, onImport: () -> Unit) {
+private fun BackupRow(state: BackupUiState, exportedName: String?, onExport: () -> Unit, onImport: () -> Unit) {
     Column(modifier = Modifier.padding(vertical = 6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.width(LABEL_WIDTH)) {
@@ -1384,7 +1426,7 @@ private fun BackupRow(state: BackupUiState, onExport: () -> Unit, onImport: () -
             }
         }
 
-        backupMessage(state)?.let {
+        backupMessage(state, exportedName)?.let {
             Text(
                 text = it,
                 color = if (state is BackupUiState.Failed || state is BackupUiState.ImportRejected) {
@@ -1400,10 +1442,13 @@ private fun BackupRow(state: BackupUiState, onExport: () -> Unit, onImport: () -
 }
 
 @Composable
-private fun backupMessage(state: BackupUiState): String? = when (state) {
+private fun backupMessage(state: BackupUiState, exportedName: String?): String? = when (state) {
     BackupUiState.Idle -> null
     BackupUiState.Working -> stringResource(R.string.tv_settings_backup_working)
-    is BackupUiState.Exported -> stringResource(R.string.tv_settings_backup_exported, state.byteCount)
+    is BackupUiState.Exported -> stringResource(
+        R.string.tv_settings_backup_exported_downloads,
+        exportedName.orEmpty(),
+    )
     is BackupUiState.Imported -> stringResource(
         R.string.tv_settings_backup_imported,
         state.sourcesRestored,
@@ -1702,8 +1747,91 @@ private val BOX_PADDING_VERTICAL = 12.dp
 private val ROW_SPACING = 6.dp
 
 private const val MBPS = 1_000_000
+
+/** Enough for any real playlist's main languages, few enough to fit across the screen. */
+private const val MAX_LANGUAGE_CHIPS = 8
+
+/**
+ * Which languages' Movies and Series shelves come first. A press adds a language to the end of
+ * the list, a second press takes it out; the chosen ones show their place — "1 · Arabic".
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LanguagesFirstRow(languages: List<String>, chosen: List<String>, onToggle: (String) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(modifier = Modifier.width(LABEL_WIDTH)) {
+            Text(
+                text = stringResource(R.string.tv_settings_category_languages_first),
+                color = Color.White,
+                fontSize = 17.sp,
+                lineHeight = 22.sp,
+            )
+            Text(
+                text = stringResource(R.string.tv_settings_category_languages_first_detail),
+                color = Color.White.copy(alpha = 0.55f),
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                modifier = Modifier.padding(top = 3.dp),
+            )
+        }
+        Spacer(modifier = Modifier.width(COLUMN_GAP))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.focusGroup(),
+        ) {
+            languages.forEach { language ->
+                val place = chosen.indexOf(language)
+                TvChip(
+                    label = if (place >= 0) "${place + 1} · $language" else language,
+                    isSelected = place >= 0,
+                    onClick = { onToggle(language) },
+                )
+            }
+        }
+    }
+}
 private const val BACKUP_MIME_TYPE = "application/json"
-private const val BACKUP_FILE_NAME = "quiblo-backup.json"
+private const val BACKUP_FILE_PREFIX = "quiblo-backup"
+
+/** Timestamped, so a second export never overwrites (or gets renamed against) the first. */
+private fun backupFileName(): String =
+    "$BACKUP_FILE_PREFIX-" + SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date()) + ".json"
+
+/**
+ * Writes [contents] to the shared Downloads folder through MediaStore.
+ *
+ * Needs no storage permission on Android 10 and later, and this app's minimum is 11. Throws on
+ * failure so the ViewModel reports it as a failed export rather than a silent success.
+ */
+private fun writeToDownloads(context: Context, name: String, contents: String) {
+    val resolver = context.contentResolver
+    val values = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+        put(MediaStore.MediaColumns.MIME_TYPE, BACKUP_MIME_TYPE)
+        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+        put(MediaStore.MediaColumns.IS_PENDING, 1)
+    }
+    val uri = checkNotNull(resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)) {
+        "MediaStore refused the backup file"
+    }
+    try {
+        checkNotNull(resolver.openOutputStream(uri)) { "No stream for $uri" }
+            .use { it.write(contents.toByteArray()) }
+        resolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
+    } catch (e: IOException) {
+        resolver.delete(uri, null, null)
+        throw e
+    } catch (e: IllegalStateException) {
+        resolver.delete(uri, null, null)
+        throw e
+    }
+}
 private const val ANY_MIME_TYPE = "*/*"
 
 /**

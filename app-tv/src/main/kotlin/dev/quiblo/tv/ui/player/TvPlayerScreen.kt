@@ -796,7 +796,7 @@ internal fun handleKey(key: Key, context: KeyContext, actions: KeyActions): Bool
 
     if (context.areControlsVisible && key.isDirection()) return false
 
-    return handleOverlayKey(key, actions) || handleTransportKey(key, context, actions)
+    return handleOverlayKey(key, context, actions) || handleTransportKey(key, context, actions)
 }
 
 private fun Key.isDirection(): Boolean =
@@ -812,12 +812,17 @@ private fun Key.isDirection(): Boolean =
  * more: the second press is focus traversal, and [handleKey] has already returned by the time
  * this is reached with the controls up.
  */
-private fun handleOverlayKey(key: Key, actions: KeyActions): Boolean =
+private fun handleOverlayKey(key: Key, context: KeyContext, actions: KeyActions): Boolean =
     when (key) {
         // Down brings the controls up (AC-TV-06), and once they are up this branch is not
         // reached at all — the guard in [handleKey] hands the arrows to focus, so a second
         // press steps from the transport row into the options row underneath it.
-        Key.DirectionDown -> {
+        // On a live channel down zaps instead (the mirror of up), so it is left to
+        // [handleTransportKey]. There the controls come up with OK (which also pauses) or
+        // Menu/Info (which also cycles aspect).
+        Key.DirectionDown -> if (context.canZap) {
+            false
+        } else {
             actions.showControls()
             true
         }
@@ -894,7 +899,7 @@ private fun handleTransportKey(key: Key, context: KeyContext, actions: KeyAction
             true
         }
 
-        Key.ChannelDown -> if (context.canZap) {
+        Key.DirectionDown, Key.ChannelDown -> if (context.canZap) {
             actions.zap(1)
             true
         } else {

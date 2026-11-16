@@ -103,6 +103,7 @@ import dev.quiblo.tv.ui.live.TvLiveScreen
 import dev.quiblo.tv.ui.player.TvPlaybackRequest
 import dev.quiblo.tv.ui.player.TvPlayerScreen
 import dev.quiblo.tv.ui.profiles.TvProfileScreen
+import dev.quiblo.tv.ui.recent.TvRecentScreen
 import dev.quiblo.tv.ui.search.TvSearchScreen
 import dev.quiblo.tv.ui.series.TvSeriesScreen
 import dev.quiblo.tv.ui.settings.TvSettingsScreen
@@ -805,6 +806,10 @@ private fun TvTabContent(
         )
 
         TvTab.LIVE -> TvLiveScreen(
+            onPlay = { items, index -> onOpen(items, index, WatchOrigin.ROW) },
+        )
+
+        TvTab.RECENT -> TvRecentScreen(
             onPlay = { items, index -> onOpen(items, index, WatchOrigin.ROW) },
         )
 

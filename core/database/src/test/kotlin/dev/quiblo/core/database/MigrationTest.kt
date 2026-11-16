@@ -510,6 +510,34 @@ class MigrationTest {
     }
 
     @Test
+    fun `26 to 27 indexes the shelves by category and touches no rows`() {
+        helper.createDatabase(DB_NAME, 26).use { old ->
+            old.execSQL(
+                "INSERT INTO `sources` (`id`, `name`, `kind`, `url`, `createdAtEpochMillis`) " +
+                    "VALUES (1, 'Panel', 'M3U', 'https://e.invalid', 0)",
+            )
+            old.execSQL(
+                "INSERT INTO `channels` " +
+                    "(`id`, `sourceId`, `name`, `streamUrl`, `kind`, `groupTitle`, `stableKey`, " +
+                    "`sortIndex`, `searchTitle`, `identityYear`, `scriptMask`) " +
+                    "VALUES (1, 1, 'Dune', 'https://e.invalid/1', 'VOD', 'AR | Films', 'dune', 0, 'dune', 2021, 0)",
+            )
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 27, true, MIGRATION_26_27)
+
+        db.query(
+            "SELECT `name` FROM `sqlite_master` WHERE `type` = 'index' AND `tbl_name` = 'channels' " +
+                "AND `name` = 'index_channels_sourceId_kind_groupTitle_sortIndex'",
+        ).use { cursor -> assertTrue("the shelves have no index to read from", cursor.moveToFirst()) }
+
+        db.query("SELECT COUNT(*) FROM `channels`").use { cursor ->
+            cursor.moveToFirst()
+            assertEquals(1, cursor.getInt(0))
+        }
+    }
+
+    @Test
     fun `10 to 11 adopts existing favourites rather than dropping them`() {
         // The opposite promise to the one above, and the one that matters more: this is the
         // viewer's own data and nobody can hand it back. AC-DATA-04.

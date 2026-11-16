@@ -32,16 +32,20 @@ import dev.quiblo.core.data.PlayerSettingsRepository
 import dev.quiblo.core.data.PopularEntry
 import dev.quiblo.core.data.PopularTitlesRepository
 import dev.quiblo.core.data.PreviewOutcome
+import dev.quiblo.core.data.RecentlyAddedFeed
 import dev.quiblo.core.data.RecommendationRepository
 import dev.quiblo.core.data.SourceRepository
 import dev.quiblo.core.data.Suggestion
 import dev.quiblo.core.data.TitleMetadataRepository
 import dev.quiblo.core.data.WatchHistoryRepository
 import dev.quiblo.core.model.Category
+import dev.quiblo.core.model.CategoryOrdering
 import dev.quiblo.core.model.Channel
 import dev.quiblo.core.model.FeedRowEntry
 import dev.quiblo.core.model.FeedRowId
 import dev.quiblo.core.model.HistoryEntry
+import dev.quiblo.core.model.LiveCategoryClassifier
+import dev.quiblo.core.model.LiveGrouping
 import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.Programme
 import dev.quiblo.core.model.TitleMetadata
@@ -57,6 +61,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -82,6 +87,8 @@ data class BrowseUiState(
     val hasSource: Boolean = false,
     val categories: List<Category> = emptyList(),
     val selectedCategory: String? = null,
+    /** How the Live rail is grouped. Only the Live catalogue reads it; every other screen ignores it. */
+    val liveGrouping: LiveGrouping = LiveGrouping.PROVIDER,
     val items: List<Channel> = emptyList(),
     /**
      * Whether [items] are in the order the provider dated them, or in the order it listed them.
@@ -145,6 +152,14 @@ data class BrowseUiState(
      * that have TMDB metadata.
      */
     val heroItems: List<HeroItem> = emptyList(),
+    /**
+     * The newest titles of this kind, for the Recently Added row at the top of Movies and Series.
+     *
+     * Only [BrowseScope.CATEGORY_ROWS] fills it.
+     */
+    val recentItems: List<Channel> = emptyList(),
+    /** Whether [recentItems] are by the provider's dates (true) or the end of its list (false). */
+    val recentOrderedByDate: Boolean = true,
 )
 
 /** One item in the hero slider, with its channel and metadata. */
@@ -392,6 +407,23 @@ class BrowseViewModel(
     private val selectedCategory = MutableStateFlow<String?>(null)
     private val query = MutableStateFlow("")
 
+    /**
+     * How the Live rail groups channels. Everything but the Live catalogue reads it as PROVIDER,
+     * so no other screen pays for a grouping it does not draw.
+     */
+    private val liveGrouping: Flow<LiveGrouping> =
+        if (feed.kind == MediaKind.LIVE && feed.scope == BrowseScope.CATALOGUE) {
+            playerSettings.liveGrouping
+        } else {
+            flowOf(LiveGrouping.PROVIDER)
+        }
+
+    /** Remembers the choice and clears the selected group, which means nothing under another grouping. */
+    fun setLiveGrouping(value: LiveGrouping) {
+        selectedCategory.value = null
+        viewModelScope.launch { playerSettings.setLiveGrouping(value) }
+    }
+
     val currentQuery: StateFlow<String> = query.asStateFlow()
 
     /** M3 browses the first configured source. Multi-source selection is post-v1. */
@@ -459,29 +491,45 @@ class BrowseViewModel(
                 activeSourceId,
                 selectedCategory,
                 query.debounce { if (it.isEmpty()) 0L else SEARCH_DEBOUNCE_MILLIS },
-            ) { active, selected, searchText -> Triple(active, selected, searchText) }
-                .flatMapLatest { (active, selected, searchText) ->
-                    val sourceId = (active as? ActiveSource.Resolved)?.id
+                liveGrouping,
+            ) { active, selected, searchText, grouping -> PagedAsk(active, selected, searchText, grouping) }
+                .flatMapLatest { ask ->
+                    val sourceId = (ask.active as? ActiveSource.Resolved)?.id
                         ?: return@flatMapLatest flowOf(PagingData.empty())
-                    channelRepository.pagedBrowse(
-                        sourceId = sourceId,
-                        kind = feed.kind,
-                        groupTitle = selected,
-                        query = searchText,
-                    )
+                    if (ask.grouping == LiveGrouping.PROVIDER || ask.selected == null) {
+                        channelRepository.pagedBrowse(
+                            sourceId = sourceId,
+                            kind = feed.kind,
+                            groupTitle = ask.selected,
+                            query = ask.searchText,
+                        )
+                    } else {
+                        // One derived group is every provider category classified into it.
+                        val members = categoryRepository.observeCategories(sourceId, feed.kind).first()
+                            .map { it.title }
+                            .filter { LiveCategoryClassifier.groupOf(it, ask.grouping) == ask.selected }
+                        channelRepository.pagedBrowseInGroups(
+                            sourceId = sourceId,
+                            kind = feed.kind,
+                            groupTitles = members,
+                            query = ask.searchText,
+                        )
+                    }
                 }
                 .cachedIn(viewModelScope)
         }
 
     private fun feedFor(sourceId: Long) = combine(
-        categoriesFor(sourceId),
+        combine(categoriesFor(sourceId), liveGrouping) { categories, grouping ->
+            grouping to grouped(categories, grouping)
+        },
         selectedCategory,
         // Debounced so a fast typist does not issue a query per keystroke. Short enough
         // to stay well inside the 200ms budget in AC-FAV-05.
         query.debounce { if (it.isEmpty()) 0L else SEARCH_DEBOUNCE_MILLIS },
-    ) { categories, selected, searchText ->
-        Triple(categories, selected, searchText)
-    }.flatMapLatest { (categories, selected, searchText) ->
+    ) { (grouping, categories), selected, searchText ->
+        FeedAsk(categories, selected, searchText, grouping)
+    }.flatMapLatest { (categories, selected, searchText, grouping) ->
         val rows = when (feed.scope) {
             BrowseScope.FAVOURITES ->
                 channelRepository.observeFavorites(sourceId, searchText).map(::BrowseRows)
@@ -504,8 +552,18 @@ class BrowseViewModel(
                     sinceEpochMillis = now() - RECENT_WINDOW_MILLIS,
                 ).map { BrowseRows(it.items, orderedByDate = it.orderedByDate) }
 
-            BrowseScope.CATEGORY_ROWS ->
-                channelRepository.observeCategoryRows(sourceId, feed.kind, searchText).map(::BrowseRows)
+            // The shelves, and the Recently Added row above them. No row while searching: it
+            // would ignore the term and look like a result.
+            BrowseScope.CATEGORY_ROWS -> {
+                val recent = if (searchText.isEmpty()) {
+                    channelRepository.observeNewestOfKind(sourceId, feed.kind, SHELF_RECENT_LIMIT)
+                } else {
+                    flowOf(RecentlyAddedFeed())
+                }
+                combine(channelRepository.observeCategoryRows(sourceId, feed.kind, searchText), recent) { items, newest ->
+                    BrowseRows(items, recent = newest.items, recentByDate = newest.orderedByDate)
+                }
+            }
 
             // Paged, and therefore not here. `pagedItems` carries the rows; this scope's `items`
             // stays empty rather than holding a second unpaged copy of the same query, which
@@ -528,6 +586,7 @@ class BrowseViewModel(
                 hasSource = true,
                 categories = categories,
                 selectedCategory = selected,
+                liveGrouping = grouping,
                 items = list.items,
                 orderedByDate = list.orderedByDate,
                 query = searchText,
@@ -538,6 +597,8 @@ class BrowseViewModel(
                 history = history,
                 extraRows = extras,
                 heroItems = hero,
+                recentItems = list.recent,
+                recentOrderedByDate = list.recentByDate,
             )
         }
     }
@@ -767,7 +828,12 @@ class BrowseViewModel(
      * than beside them: the two are read in the same breath at the state boundary, and a
      * separate flow for one boolean would be a second thing to keep in step with the first.
      */
-    private data class BrowseRows(val items: List<Channel>, val orderedByDate: Boolean = true)
+    private data class BrowseRows(
+        val items: List<Channel>,
+        val orderedByDate: Boolean = true,
+        val recent: List<Channel> = emptyList(),
+        val recentByDate: Boolean = true,
+    )
 
     /**
      * The provider's categories, for the two feeds that show them.
@@ -791,7 +857,17 @@ class BrowseViewModel(
              * screen needs a branch it did not already have.
              */
             playerSettings.mergeCategories.flatMapLatest { merged ->
-                if (merged) flowOf(emptyList()) else categoryRepository.observeCategories(sourceId, feed.kind)
+                when {
+                    merged -> flowOf(emptyList())
+                    feed.kind == MediaKind.LIVE -> categoryRepository.observeCategories(sourceId, feed.kind)
+                    // Films and series take the viewer's chosen order: A–Z, by language, and
+                    // which languages come first. Live has its own grouping and keeps it.
+                    else -> combine(
+                        categoryRepository.observeCategories(sourceId, feed.kind),
+                        playerSettings.categorySort,
+                        playerSettings.categoryLanguagesFirst,
+                    ) { categories, sort, first -> CategoryOrdering.sort(categories, sort, first) }
+                }
             }
         } else {
             flowOf(emptyList())
@@ -1120,6 +1196,39 @@ class BrowseViewModel(
         viewModelScope.launch { recordGuideOutcome(guideRepository.refreshFullGuideFor(channel)) }
     }
 
+    /**
+     * The rail for [grouping]: the provider's categories as they are, or merged into one entry per
+     * country or type, with counts summed and groups in alphabetical order with "Other" last.
+     */
+    private fun grouped(categories: List<Category>, grouping: LiveGrouping): List<Category> {
+        if (grouping == LiveGrouping.PROVIDER) return categories
+        return categories
+            .groupBy { LiveCategoryClassifier.groupOf(it.title, grouping) }
+            .map { (name, members) ->
+                Category(
+                    id = members.first().id,
+                    sourceId = members.first().sourceId,
+                    title = name,
+                    itemCount = members.sumOf { it.itemCount },
+                )
+            }
+            .sortedWith(compareBy({ it.title == LiveCategoryClassifier.OTHER }, { it.title }))
+    }
+
+    private data class FeedAsk(
+        val categories: List<Category>,
+        val selected: String?,
+        val searchText: String,
+        val grouping: LiveGrouping,
+    )
+
+    private data class PagedAsk(
+        val active: ActiveSource,
+        val selected: String?,
+        val searchText: String,
+        val grouping: LiveGrouping,
+    )
+
     fun selectCategory(groupTitle: String?) {
         selectedCategory.value = groupTitle
     }
@@ -1189,6 +1298,9 @@ class BrowseViewModel(
          * The subscription still ends, so an app left in the background is not reading anything.
          */
         const val STOP_TIMEOUT_MILLIS = 5L * 60 * 1000
+
+        /** How many titles the Recently Added row on Movies and Series holds. */
+        const val SHELF_RECENT_LIMIT = 50
         const val SEARCH_DEBOUNCE_MILLIS = 120L
 
         /**

@@ -98,6 +98,7 @@ class CatalogueWarmup(
         for (kind in WARMED_KINDS) {
             categoryRepository.observeCategories(sourceId, kind).first()
             channelRepository.observeCategoryRows(sourceId, kind).first()
+            channelRepository.observeNewestOfKind(sourceId, kind, SHELF_RECENT_LIMIT).first()
         }
     }
 
@@ -113,6 +114,9 @@ class CatalogueWarmup(
          * layer, and a warm-up asking for slightly the wrong number still warms the right pages.
          */
         const val RECENT_WARM_LIMIT = 15
+
+        /** The Recently Added row on Movies and Series; matches `BrowseViewModel.SHELF_RECENT_LIMIT`. */
+        const val SHELF_RECENT_LIMIT = 50
 
         /** Thirty days, the same window Home calls "recently added". */
         const val RECENT_WINDOW_MILLIS = 30L * 24 * 60 * 60 * 1000

@@ -20,6 +20,7 @@ package dev.quiblo.tv.di
 
 import android.content.Context
 import dev.quiblo.tv.BuildConfig
+import dev.quiblo.tv.ui.recent.TvRecentViewModel
 import dev.quiblo.tv.update.TvApkInstaller
 import dev.quiblo.tv.update.TvUpdateViewModel
 import org.koin.core.module.Module
@@ -39,6 +40,10 @@ import org.koin.dsl.module
  * presses the button.
  */
 val tvUpdateModule: Module = module {
+    // The Recent tab. Lives here rather than in a module of its own: it is the other TV-only screen.
+    viewModel {
+        TvRecentViewModel(sourceRepository = get(), historyRepository = get(), channelRepository = get())
+    }
     viewModel {
         TvUpdateViewModel(
             checker = get(),

@@ -92,6 +92,11 @@ data class SourceEntity(
          */
         Index("sourceId", "kind", "addedAtEpochMillis"),
         /**
+         * The shelves' per-category read (`observeCategoryRows`): one category's first rows in
+         * provider order, read straight off the index and stopped at the cap. Schema 27.
+         */
+        Index("sourceId", "kind", "groupTitle", "sortIndex"),
+        /**
          * The browse query again, with the writing-system filter in front of the sort.
          *
          * `observeBrowse` gained `scriptMask` as a predicate, and a predicate SQLite cannot

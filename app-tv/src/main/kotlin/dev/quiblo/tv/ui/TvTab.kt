@@ -57,11 +57,14 @@ internal enum class TvTab(
      * It was Recently Added, which is now the first of its three rows.
      */
     FOR_YOU(R.string.tv_tab_for_you),
-    SEARCH(R.string.tv_tab_search),
     LIVE(R.string.tv_tab_live, tab = AppTab.LIVE),
+    /** The last live channels watched. Not switchable: there is no `AppTab` entry for it. */
+    RECENT(R.string.tv_tab_recent),
     MOVIES(R.string.tv_tab_movies, tab = AppTab.MOVIES),
     SERIES(R.string.tv_tab_series, tab = AppTab.SERIES),
     FAVOURITES(R.string.tv_tab_favourites, tab = AppTab.FAVOURITES),
+    /** Last, after Favourites. */
+    SEARCH(R.string.tv_tab_search),
     ;
 
     companion object {

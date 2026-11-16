@@ -134,14 +134,12 @@ class XtreamSource internal constructor(
         return when (val auth = client.authenticate(base, credentials)) {
             is ApiResult.Err -> noteBlocked(auth.error, SourceResult::Failure)
             is ApiResult.Ok -> authorised(auth.value)?.let { SourceResult.Failure(it) }
-                ?: collect(
-                    Context(
-                        base = base,
-                        credentials = credentials,
-                        sourceId = request.sourceId,
-                        allowedLiveFormats = auth.value.userInfo?.allowedOutputFormats?.toSet(),
-                    ),
-                )
+                ?: Context(
+                    base = base,
+                    credentials = credentials,
+                    sourceId = request.sourceId,
+                    allowedLiveFormats = auth.value.userInfo?.allowedOutputFormats?.toSet(),
+                ).let { ctx -> request.onlyKind?.let { kind -> collectOnly(ctx, kind) } ?: collect(ctx) }
         }
     }
 
@@ -257,6 +255,39 @@ class XtreamSource internal constructor(
                         live = mapLive(result.value, ctx, grouping.value),
                     )
                 }
+        }
+    }
+
+    /**
+     * One kind only, for a refresh the viewer asked for by kind: one list and its categories,
+     * and none of the other requests a full load makes.
+     *
+     * An empty answer is a success here, unlike a full load: an account with no series that is
+     * asked to refresh series has correctly been told there are none.
+     */
+    private suspend fun collectOnly(ctx: Context, kind: MediaKind): SourceResult {
+        val outcome: BatchOutcome = when (kind) {
+            MediaKind.LIVE -> when (val result = client.liveStreams(ctx.base, ctx.credentials)) {
+                is ApiResult.Err -> return noteBlocked(result.error, SourceResult::Failure)
+                is ApiResult.Ok ->
+                    when (val grouping = grouping(result.value, client.liveCategories(ctx.base, ctx.credentials))) {
+                        is ApiResult.Err -> BatchOutcome.Refused(grouping.error)
+                        is ApiResult.Ok -> BatchOutcome.Loaded(mapLive(result.value, ctx, grouping.value))
+                    }
+            }
+            MediaKind.VOD -> vodBatch(ctx)
+            MediaKind.SERIES -> seriesBatch(ctx)
+        }
+        return when (outcome) {
+            is BatchOutcome.Refused -> SourceResult.Failure(outcome.error)
+            is BatchOutcome.Loaded -> SourceResult.Success(
+                channels = outcome.batch.channels,
+                report = SourceReport(
+                    parsedEntries = outcome.batch.channels.size,
+                    skippedEntries = outcome.batch.skipped,
+                ),
+                allowedLiveFormats = ctx.allowedLiveFormats,
+            )
         }
     }
 

@@ -66,6 +66,25 @@ class SyncScheduler(private val context: Context) {
         )
     }
 
+    /**
+     * Schedules only the small popular-titles check and cancels the catalogue sync, for an app
+     * that reloads its playlist only when the viewer asks.
+     *
+     * The cancel matters as much as the omission: a periodic job scheduled by an earlier version
+     * survives an update and a reboot, and would otherwise keep reloading every four days.
+     */
+    fun scheduleWithoutCatalogueSync() {
+        val workManager = WorkManager.getInstance(context)
+        workManager.cancelUniqueWork(CatalogueSyncWorker.WORK_NAME)
+        workManager.enqueueUniquePeriodicWork(
+            PopularTitlesWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<PopularTitlesWorker>(POPULAR_INTERVAL_HOURS, TimeUnit.HOURS)
+                .setConstraints(networkRequired)
+                .build(),
+        )
+    }
+
     private val networkRequired
         get() = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)

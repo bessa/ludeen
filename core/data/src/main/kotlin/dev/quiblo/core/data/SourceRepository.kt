@@ -22,6 +22,7 @@ import dev.quiblo.core.database.dao.ChannelDao
 import dev.quiblo.core.database.dao.FeedRowDao
 import dev.quiblo.core.database.dao.SourceDao
 import dev.quiblo.core.model.LiveFormat
+import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.Source
 import dev.quiblo.core.model.SourceKind
 import dev.quiblo.source.api.CredentialStore
@@ -112,6 +113,36 @@ class SourceRepository(
                 RefreshOutcome.Failure(SourceError.Unknown("No handler for ${source.kind}"))
 
             else -> store(sourceId, mediaSource.load(SourceRequest(sourceId, source.url)), merge)
+        }
+    }
+
+    /**
+     * Reloads only one kind of content — live, films or series — leaving the others untouched.
+     *
+     * For an Xtream account only that kind is requested. An M3U playlist is one file and is
+     * downloaded whole, but only rows of [kind] are kept from it. A failed load leaves what is
+     * stored alone, as a full refresh does.
+     */
+    suspend fun refreshKind(sourceId: Long, kind: MediaKind): RefreshOutcome {
+        val source = sourceDao.findById(sourceId)?.toDomain()
+            ?: return RefreshOutcome.Failure(SourceError.Unknown("Source not found"))
+        val mediaSource = mediaSources[source.kind]
+            ?: return RefreshOutcome.Failure(SourceError.Unknown("No handler for ${source.kind}"))
+
+        return when (val result = mediaSource.load(SourceRequest(sourceId, source.url, onlyKind = kind))) {
+            is SourceResult.Failure -> RefreshOutcome.Failure(result.error)
+            is SourceResult.Success -> {
+                val entities = result.channels
+                    .filter { it.kind == kind }
+                    .mapIndexed { index, channel -> channel.toEntity(sortIndex = index) }
+                channelDao.replaceForSourceKind(sourceId, kind.name, entities)
+                sourceDao.markRefreshed(sourceId, now())
+                result.allowedLiveFormats?.let { sourceDao.setAllowedLiveFormats(sourceId, it.joinToString(",")) }
+                RefreshOutcome.Success(
+                    sourceId,
+                    result.report.copy(parsedEntries = entities.size),
+                )
+            }
         }
     }
 
