@@ -23,6 +23,12 @@
 > - Home shows only what you were watching; Search moved to the end of the tab bar.
 > - Backups export straight to Downloads; the update check is off by default.
 >
+> **Releases and updates.** Download the TV APK from
+> [Releases](https://github.com/bessa/ludeen/releases/latest). The app's update check (Settings →
+> Updates) reads this repository's latest release, not Quiblo's, and installs `ludeen-tv-*.apk`
+> only after its `.sha256` matches. A new release is built and published from the build machine
+> with `tools/release-ludeen.sh`.
+>
 > The rest of this README is Quiblo's own and describes the upstream project.
 
 

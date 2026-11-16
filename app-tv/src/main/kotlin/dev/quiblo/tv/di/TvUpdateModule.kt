@@ -21,6 +21,7 @@ package dev.quiblo.tv.di
 import android.content.Context
 import dev.quiblo.tv.BuildConfig
 import dev.quiblo.tv.ui.recent.TvRecentViewModel
+import dev.quiblo.core.network.update.ReleaseChecker
 import dev.quiblo.tv.update.TvApkInstaller
 import dev.quiblo.tv.update.TvUpdateViewModel
 import org.koin.core.module.Module
@@ -46,7 +47,10 @@ val tvUpdateModule: Module = module {
     }
     viewModel {
         TvUpdateViewModel(
-            checker = get(),
+            // This build updates from its own fork's releases, not from Quiblo's: an APK signed
+            // with Quiblo's key could not be installed over this one anyway.
+            checker = ReleaseChecker(client = get(), connectivity = get(), repository = ReleaseChecker.LUDEEN_REPOSITORY),
+            assetPrefix = ReleaseChecker.LUDEEN_TV_ASSET_PREFIX,
             downloader = get(),
             settings = get(),
             currentVersion = BuildConfig.VERSION_NAME,

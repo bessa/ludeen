@@ -138,6 +138,12 @@ class ReleaseChecker(
     companion object {
         const val QUIBLO_REPOSITORY = "quiblo-iptv/quiblo-app"
 
+        /** The Ludeen fork's releases, which the television build checks instead of Quiblo's. */
+        const val LUDEEN_REPOSITORY = "bessa/ludeen"
+
+        /** What the Ludeen television APK is called on its releases: `ludeen-tv-vX.Y.Z.apk`. */
+        const val LUDEEN_TV_ASSET_PREFIX = "ludeen-tv-"
+
         /** What the television's APK is called on every release the lane has published. */
         const val TV_ASSET_PREFIX = "quiblo-tv-"
 

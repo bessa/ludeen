@@ -140,6 +140,35 @@ class ReleaseCheckerTest {
         assertEquals(UpdateCheck.Failed(UpdateCheck.Failed.Reason.MALFORMED), outcome)
     }
 
+    @Test
+    fun `a Ludeen release finds its own APK and is up to date on the same Bash version`() = runTest {
+        val ludeen = """
+            {
+              "tag_name": "v0.35.7-Bash",
+              "body": "Ludeen.",
+              "assets": [
+                { "name": "ludeen-tv-v0.35.7-Bash.apk", "browser_download_url": "https://example.invalid/a.apk" },
+                { "name": "ludeen-tv-v0.35.7-Bash.apk.sha256", "browser_download_url": "https://example.invalid/a.apk.sha256" }
+              ]
+            }
+        """.trimIndent()
+
+        val older = checkerReturning(ludeen).check("0.35.6-Bash", ReleaseChecker.LUDEEN_TV_ASSET_PREFIX)
+        assertEquals(
+            UpdateCheck.Available(
+                version = "v0.35.7-Bash",
+                apkUrl = "https://example.invalid/a.apk",
+                checksumUrl = "https://example.invalid/a.apk.sha256",
+                notes = "Ludeen.",
+            ),
+            older,
+        )
+        assertEquals(
+            UpdateCheck.UpToDate,
+            checkerReturning(ludeen).check("0.35.7-Bash", ReleaseChecker.LUDEEN_TV_ASSET_PREFIX),
+        )
+    }
+
     private fun checkerReturning(body: String): ReleaseChecker {
         val engine = MockEngine {
             respond(

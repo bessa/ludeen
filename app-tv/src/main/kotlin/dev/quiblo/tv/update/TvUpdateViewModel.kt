@@ -80,6 +80,8 @@ class TvUpdateViewModel(
     private val settings: PlayerSettingsRepository,
     private val currentVersion: String,
     private val updatesDirectory: File,
+    /** Which release asset is this app's APK. Quiblo's by default; the Ludeen build passes its own. */
+    private val assetPrefix: String = ReleaseChecker.TV_ASSET_PREFIX,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<TvUpdateState>(TvUpdateState.Idle)
@@ -123,7 +125,7 @@ class TvUpdateViewModel(
             if (!settings.checkUpdatesOnLaunch.first()) return@launch
             if (_state.value !is TvUpdateState.Idle) return@launch
 
-            val outcome = checker.check(currentVersion, ReleaseChecker.TV_ASSET_PREFIX)
+            val outcome = checker.check(currentVersion, assetPrefix)
             if (outcome is UpdateCheck.Available) {
                 _state.value = TvUpdateState.Available(outcome.version, outcome)
                 _launchPrompt.value = true
@@ -151,7 +153,7 @@ class TvUpdateViewModel(
 
         _state.value = TvUpdateState.Checking
         viewModelScope.launch {
-            _state.value = when (val outcome = checker.check(currentVersion, ReleaseChecker.TV_ASSET_PREFIX)) {
+            _state.value = when (val outcome = checker.check(currentVersion, assetPrefix)) {
                 is UpdateCheck.UpToDate -> TvUpdateState.UpToDate
                 is UpdateCheck.Available -> TvUpdateState.Available(outcome.version, outcome)
                 is UpdateCheck.Failed -> TvUpdateState.Failed(outcome.reason.asFailure())
