@@ -19,13 +19,15 @@
 package dev.quiblo.tv.di
 
 import android.content.Context
+import dev.quiblo.core.network.di.LUDEEN_RELEASES
+import dev.quiblo.core.network.update.ReleaseChecker
 import dev.quiblo.tv.BuildConfig
 import dev.quiblo.tv.ui.recent.TvRecentViewModel
-import dev.quiblo.core.network.update.ReleaseChecker
 import dev.quiblo.tv.update.TvApkInstaller
 import dev.quiblo.tv.update.TvUpdateViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 /**
@@ -49,7 +51,7 @@ val tvUpdateModule: Module = module {
         TvUpdateViewModel(
             // This build updates from its own fork's releases, not from Quiblo's: an APK signed
             // with Quiblo's key could not be installed over this one anyway.
-            checker = ReleaseChecker(client = get(), connectivity = get(), repository = ReleaseChecker.LUDEEN_REPOSITORY),
+            checker = get(named(LUDEEN_RELEASES)),
             assetPrefix = ReleaseChecker.LUDEEN_TV_ASSET_PREFIX,
             downloader = get(),
             settings = get(),

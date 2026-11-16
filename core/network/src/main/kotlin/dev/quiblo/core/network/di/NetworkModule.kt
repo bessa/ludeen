@@ -27,6 +27,7 @@ import dev.quiblo.core.network.createOkHttpClient
 import dev.quiblo.core.network.update.ReleaseChecker
 import dev.quiblo.core.network.update.ReleaseDownloader
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 /**
@@ -46,5 +47,13 @@ val networkModule: Module = module {
     single<ConnectivityChecker> { AndroidConnectivityChecker(get<Context>()) }
     single { HttpContentFetcher(get(), get()) }
     single { ReleaseChecker(get(), get()) }
+    // The Ludeen television build's own releases. Built here because only this module sees the
+    // HTTP client; the TV app asks for it by name.
+    single(named(LUDEEN_RELEASES)) {
+        ReleaseChecker(get(), get(), repository = ReleaseChecker.LUDEEN_REPOSITORY)
+    }
     single { ReleaseDownloader(get()) }
 }
+
+/** The Koin name of the [ReleaseChecker] that reads bessa/ludeen's releases. */
+const val LUDEEN_RELEASES = "ludeen-releases"
