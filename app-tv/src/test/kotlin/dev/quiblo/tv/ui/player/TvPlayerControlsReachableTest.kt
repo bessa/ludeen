@@ -309,7 +309,7 @@ class TvPlayerControlsReachableTest {
         const val PREVIOUS = "Previous episode"
         const val SUBTITLES = "Subtitles"
         const val AUDIO = "Audio"
-        const val FIT = "Picture fit: FIT"
+        const val FIT = "Picture fit: Fit"
         const val TIMELINE = "Timeline. Left and right to move through, then wait."
     }
 }

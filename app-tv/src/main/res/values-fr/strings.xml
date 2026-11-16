@@ -362,6 +362,7 @@ Créez-en une sur la page ci-dessous — c\'est plus rapide sur un téléphone q
     <string name="tv_a11y_timeline">Barre de progression. Gauche et droite pour se déplacer, puis patientez.</string>
     <plurals name="tv_series_seasons">
         <item quantity="one">%1$d saison</item>
+        <item quantity="many">%1$d de saisons</item>
         <item quantity="other">%1$d saisons</item>
     </plurals>
     <string name="tv_settings_language">Langue</string>
