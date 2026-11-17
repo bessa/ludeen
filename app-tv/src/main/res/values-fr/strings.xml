@@ -216,6 +216,9 @@ Créez-en une sur la page ci-dessous — c\'est plus rapide sur un téléphone q
     <string name="tv_settings_category_sort_language">Par langue</string>
     <string name="tv_settings_category_languages_first">Langues en premier</string>
     <string name="tv_settings_category_languages_first_detail">Sélectionnez les langues dans l\'ordre où vous les voulez en haut — arabe, puis anglais. Appuyez de nouveau pour retirer.</string>
+    <string name="tv_settings_recent_languages">Langues des ajouts récents</string>
+    <string name="tv_settings_recent_languages_detail">La rangée Ajouts récents de Films et Séries montre les 50 derniers titres dans ces langues. Appuyez pour ajouter ou retirer.</string>
+    <string name="tv_settings_recent_languages_detail_all">Aucune langue choisie : la rangée Ajouts récents montre toutes les langues. Appuyez sur une langue pour ne garder qu\'elle.</string>
     <string name="tv_settings_category_kind">Catégories modifiées pour</string>
     <string name="tv_settings_category_whose">Masquer, renommer et réordonner ne concerne que vous. Chaque personne sur ce téléviseur garde sa propre liste.</string>
     <string name="tv_settings_category_summary">%1$d catégories, %2$d masquées</string>

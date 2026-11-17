@@ -158,12 +158,8 @@ class RecentlyAddedQueryTest {
                 (5..8).map { channel(id = it.toLong(), name = "Series $it", kind = "SERIES", addedAt = null) },
         )
 
-        val films = db.channelDao()
-            .observeLastInListOrder(profileId = 1L, sourceId = SOURCE_ID, kind = "VOD", limit = 2)
-            .first()
-        val series = db.channelDao()
-            .observeLastInListOrder(profileId = 1L, sourceId = SOURCE_ID, kind = "SERIES", limit = 2)
-            .first()
+        val films = lastInList(kind = "VOD", limit = 2)
+        val series = lastInList(kind = "SERIES", limit = 2)
 
         // The end of the list first, and per kind — a single query across both would return
         // four series and no films on this catalogue, which is every catalogue that lists its
@@ -171,6 +167,57 @@ class RecentlyAddedQueryTest {
         assertEquals(listOf("Film 4", "Film 3"), films.map { it.channel.name })
         assertEquals(listOf("Series 8", "Series 7"), series.map { it.channel.name })
     }
+
+    @Test
+    fun `the language choice is applied before the cap, so the row stays full`() = runTest {
+        seedSource()
+        // The newest three are French; the chosen categories' titles are all older than them.
+        db.channelDao().insertAll(
+            listOf(
+                channel(id = 1, name = "Arabic old", kind = "VOD", addedAt = NOW - 5 * DAY, group = "AR | Action"),
+                channel(id = 2, name = "English old", kind = "VOD", addedAt = NOW - 4 * DAY, group = "EN | Drama"),
+                channel(id = 3, name = "French 1", kind = "VOD", addedAt = NOW - 3 * DAY, group = "FR | Films"),
+                channel(id = 4, name = "French 2", kind = "VOD", addedAt = NOW - 2 * DAY, group = "FR | Films"),
+                channel(id = 5, name = "French 3", kind = "VOD", addedAt = NOW - 1 * DAY, group = "FR | Films"),
+            ),
+        )
+
+        val groups = db.channelDao().observeGroupTitlesOfKind(SOURCE_ID, "VOD").first()
+        assertEquals(setOf("AR | Action", "EN | Drama", "FR | Films"), groups.toSet())
+
+        val filtered = db.channelDao().observeNewestOfKind(
+            profileId = 1L,
+            sourceId = SOURCE_ID,
+            kind = "VOD",
+            limit = 2,
+            mergeDuplicates = 0,
+            filterGroups = 1,
+            groupTitles = listOf("AR | Action", "EN | Drama"),
+        ).first()
+        assertEquals(listOf("English old", "Arabic old"), filtered.map { it.channel.name })
+
+        val unfiltered = db.channelDao().observeNewestOfKind(
+            profileId = 1L,
+            sourceId = SOURCE_ID,
+            kind = "VOD",
+            limit = 2,
+            mergeDuplicates = 0,
+            filterGroups = 0,
+            groupTitles = emptyList(),
+        ).first()
+        assertEquals(listOf("French 3", "French 2"), unfiltered.map { it.channel.name })
+    }
+
+    private suspend fun lastInList(kind: String, limit: Int) = db.channelDao()
+        .observeLastInListOrder(
+            profileId = 1L,
+            sourceId = SOURCE_ID,
+            kind = kind,
+            limit = limit,
+            filterGroups = 0,
+            groupTitles = emptyList(),
+        )
+        .first()
 
     private suspend fun recents(limit: Int, since: Long = 0L) = db.channelDao()
         .observeRecentlyAdded(
@@ -194,13 +241,19 @@ class RecentlyAddedQueryTest {
         )
     }
 
-    private fun channel(id: Long, name: String, kind: String, addedAt: Long?) = ChannelEntity(
+    private fun channel(
+        id: Long,
+        name: String,
+        kind: String,
+        addedAt: Long?,
+        group: String = "Everything",
+    ) = ChannelEntity(
         id = id,
         sourceId = SOURCE_ID,
         name = name,
         streamUrl = "https://example.invalid/$id",
         kind = kind,
-        groupTitle = "Everything",
+        groupTitle = group,
         stableKey = "key-$id",
         sortIndex = id.toInt(),
         addedAtEpochMillis = addedAt,

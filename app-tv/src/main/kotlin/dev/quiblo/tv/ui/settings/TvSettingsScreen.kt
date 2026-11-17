@@ -175,6 +175,8 @@ fun TvSettingsScreen(
     val categorySort by viewModel.categorySort.collectAsStateWithLifecycle()
     val languagesFirst by viewModel.categoryLanguagesFirst.collectAsStateWithLifecycle()
     val categoryLanguages by viewModel.categoryLanguages.collectAsStateWithLifecycle()
+    val recentLanguages by viewModel.recentLanguages.collectAsStateWithLifecycle()
+    val recentLanguageOptions by viewModel.recentLanguageOptions.collectAsStateWithLifecycle()
     val hiddenTabs by viewModel.hiddenTabs.collectAsStateWithLifecycle()
     val checkUpdatesOnLaunch by viewModel.checkUpdatesOnLaunch.collectAsStateWithLifecycle()
     val ambientPlayer by viewModel.ambientPlayer.collectAsStateWithLifecycle()
@@ -494,13 +496,35 @@ fun TvSettingsScreen(
 
             if (categoryLanguages.isNotEmpty() || languagesFirst.isNotEmpty()) {
                 item {
-                    LanguagesFirstRow(
+                    LanguageChipsRow(
+                        title = stringResource(R.string.tv_settings_category_languages_first),
+                        detail = stringResource(R.string.tv_settings_category_languages_first_detail),
                         // Chosen ones first, in their order, so the numbers read 1, 2, 3 left to right.
                         languages = (languagesFirst + categoryLanguages).distinct().take(MAX_LANGUAGE_CHIPS),
                         chosen = languagesFirst,
+                        numbered = true,
                         onToggle = viewModel::toggleLanguageFirst,
                     )
                 }
+            }
+
+            // Always offered: Arabic, English and Asian are there before a playlist is loaded,
+            // and the row's own default has to be visible to be changed.
+            item {
+                LanguageChipsRow(
+                    title = stringResource(R.string.tv_settings_recent_languages),
+                    detail = stringResource(
+                        if (recentLanguages.isEmpty()) {
+                            R.string.tv_settings_recent_languages_detail_all
+                        } else {
+                            R.string.tv_settings_recent_languages_detail
+                        },
+                    ),
+                    languages = recentLanguageOptions.take(MAX_RECENT_LANGUAGE_CHIPS),
+                    chosen = recentLanguages,
+                    numbered = false,
+                    onToggle = viewModel::toggleRecentLanguage,
+                )
             }
 
             item {
@@ -1794,13 +1818,26 @@ private const val MBPS = 1_000_000
 /** Enough for any real playlist's main languages, few enough to fit across the screen. */
 private const val MAX_LANGUAGE_CHIPS = 8
 
+/** The Recently Added row's languages can be many more than the shelves' order needs. */
+private const val MAX_RECENT_LANGUAGE_CHIPS = 12
+
 /**
- * Which languages' Movies and Series shelves come first. A press adds a language to the end of
- * the list, a second press takes it out; the chosen ones show their place — "1 · Arabic".
+ * A row of language chips, pressed on and off.
+ *
+ * Two settings use it. "Languages first" is an order, so its chosen chips show their place —
+ * "1 · Arabic" — and a press adds a language to the end. The Recently Added languages are a set,
+ * so [numbered] is off and a chosen chip is only marked selected.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LanguagesFirstRow(languages: List<String>, chosen: List<String>, onToggle: (String) -> Unit) {
+private fun LanguageChipsRow(
+    title: String,
+    detail: String,
+    languages: List<String>,
+    chosen: List<String>,
+    numbered: Boolean,
+    onToggle: (String) -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1809,13 +1846,13 @@ private fun LanguagesFirstRow(languages: List<String>, chosen: List<String>, onT
     ) {
         Column(modifier = Modifier.width(LABEL_WIDTH)) {
             Text(
-                text = stringResource(R.string.tv_settings_category_languages_first),
+                text = title,
                 color = Color.White,
                 fontSize = 17.sp,
                 lineHeight = 22.sp,
             )
             Text(
-                text = stringResource(R.string.tv_settings_category_languages_first_detail),
+                text = detail,
                 color = Color.White.copy(alpha = 0.55f),
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
@@ -1831,7 +1868,7 @@ private fun LanguagesFirstRow(languages: List<String>, chosen: List<String>, onT
             languages.forEach { language ->
                 val place = chosen.indexOf(language)
                 TvChip(
-                    label = if (place >= 0) "${place + 1} · $language" else language,
+                    label = if (numbered && place >= 0) "${place + 1} · $language" else language,
                     isSelected = place >= 0,
                     onClick = { onToggle(language) },
                 )

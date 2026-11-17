@@ -519,6 +519,17 @@ class BrowseViewModel(
                 .cachedIn(viewModelScope)
         }
 
+    /**
+     * The Recently Added row above the shelves: the newest [SHELF_RECENT_LIMIT] of this kind in
+     * the languages the viewer chose in Settings — Arabic and English unless they changed it.
+     * The cap applies after the filter, so the row is fifty titles of those languages rather
+     * than whatever is left of fifty.
+     */
+    private fun newestInChosenLanguages(sourceId: Long): Flow<RecentlyAddedFeed> =
+        playerSettings.recentLanguages.distinctUntilChanged().flatMapLatest { languages ->
+            channelRepository.observeNewestOfKind(sourceId, feed.kind, SHELF_RECENT_LIMIT, languages)
+        }
+
     private fun feedFor(sourceId: Long) = combine(
         combine(categoriesFor(sourceId), liveGrouping) { categories, grouping ->
             grouping to grouped(categories, grouping)
@@ -556,7 +567,7 @@ class BrowseViewModel(
             // would ignore the term and look like a result.
             BrowseScope.CATEGORY_ROWS -> {
                 val recent = if (searchText.isEmpty()) {
-                    channelRepository.observeNewestOfKind(sourceId, feed.kind, SHELF_RECENT_LIMIT)
+                    newestInChosenLanguages(sourceId)
                 } else {
                     flowOf(RecentlyAddedFeed())
                 }

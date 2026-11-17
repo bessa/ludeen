@@ -100,6 +100,7 @@ class BrowseViewModelTest {
         every { liveGrouping } returns flowOf(LiveGrouping.PROVIDER)
         every { categorySort } returns flowOf(dev.quiblo.core.model.CategorySort.PROVIDER)
         every { categoryLanguagesFirst } returns flowOf(emptyList())
+        every { recentLanguages } returns flowOf(emptyList())
     }
 
     @BeforeEach

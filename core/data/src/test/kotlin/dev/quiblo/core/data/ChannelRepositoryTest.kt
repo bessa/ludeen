@@ -165,15 +165,15 @@ class ChannelRepositoryTest {
 
         assertEquals(listOf("New film"), feed.items.map { it.name })
         assertTrue(feed.orderedByDate, "a dated source produced a row that does not claim its dates")
-        verify(exactly = 0) { channelDao.observeLastInListOrder(any(), any(), any(), any()) }
+        verify(exactly = 0) { channelDao.observeLastInListOrder(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
     fun `an undated source falls back to the end of its own list, both kinds interleaved`() = runTest {
         every { channelDao.observeHasAddedDates(SOURCE_ID) } returns flowOf(false)
-        every { channelDao.observeLastInListOrder(any(), any(), MediaKind.VOD.name, any()) } returns
+        every { channelDao.observeLastInListOrder(any(), any(), MediaKind.VOD.name, any(), any(), any()) } returns
             flowOf(listOf(row(id = 1L, name = "Film A"), row(id = 2L, name = "Film B")))
-        every { channelDao.observeLastInListOrder(any(), any(), MediaKind.SERIES.name, any()) } returns
+        every { channelDao.observeLastInListOrder(any(), any(), MediaKind.SERIES.name, any(), any(), any()) } returns
             flowOf(listOf(row(id = 3L, name = "Series A")))
 
         val feed = repository.observeRecentlyAdded(SOURCE_ID, limit = 40, sinceEpochMillis = 100L).first()

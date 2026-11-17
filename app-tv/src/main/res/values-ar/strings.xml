@@ -218,6 +218,9 @@
     <string name="tv_settings_category_sort_language">حسب اللغة</string>
     <string name="tv_settings_category_languages_first">اللغات أولًا</string>
     <string name="tv_settings_category_languages_first_detail">اضغط على اللغات بالترتيب الذي تريده في الأعلى — العربية ثم الإنجليزية. اضغط مجددًا للإزالة.</string>
+    <string name="tv_settings_recent_languages">لغات المضاف حديثًا</string>
+    <string name="tv_settings_recent_languages_detail">يعرض صف المضاف حديثًا في الأفلام والمسلسلات أحدث 50 عنوانًا بهذه اللغات. اضغط للإضافة أو الإزالة.</string>
+    <string name="tv_settings_recent_languages_detail_all">لم تُختر أي لغة، لذا يعرض صف المضاف حديثًا كل اللغات. اضغط على لغة لإبقائها وحدها.</string>
     <string name="tv_settings_category_kind">تعديل فئات</string>
     <string name="tv_settings_category_whose">الإخفاء وإعادة التسمية وإعادة الترتيب خاصة بك وحدك. يحتفظ كل شخص آخر على هذا التلفاز بقائمته.</string>
     <string name="tv_settings_category_summary">%1$d فئة، %2$d مخفية</string>

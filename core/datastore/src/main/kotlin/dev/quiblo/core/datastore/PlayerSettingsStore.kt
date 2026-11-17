@@ -237,6 +237,23 @@ class PlayerSettingsStore(context: Context) : ProfileScopedStore {
     suspend fun setCategoryLanguagesFirst(profileId: Long, value: List<String>) =
         put(CATEGORY_LANGUAGES_FIRST, profileId, value.joinToString(","))
 
+    /**
+     * Languages the Recently Added row on Movies and Series may show — "Arabic,English".
+     *
+     * Never written means [defaultValue]; written empty means the viewer took every language off,
+     * which is "show them all", not "show nothing". The two have to stay apart, so the absence of
+     * the key carries the default rather than an empty string.
+     */
+    fun recentLanguages(profileId: Long, defaultValue: List<String>): Flow<List<String>> =
+        dataStore.data.map { preferences ->
+            preferences.scopedString(RECENT_LANGUAGES, profileId)
+                ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
+                ?: defaultValue
+        }
+
+    suspend fun setRecentLanguages(profileId: Long, value: List<String>) =
+        put(RECENT_LANGUAGES, profileId, value.joinToString(","))
+
     /** How the Live screen groups its channels: provider categories, country/language or type. */
     fun liveGrouping(profileId: Long): Flow<LiveGrouping> = dataStore.data.map { preferences ->
         preferences.readEnum(LIVE_GROUPING, profileId, LiveGrouping.entries) { LiveGrouping.PROVIDER }
@@ -389,6 +406,7 @@ class PlayerSettingsStore(context: Context) : ProfileScopedStore {
         const val LIVE_GROUPING = "live_grouping"
         const val CATEGORY_SORT = "category_sort"
         const val CATEGORY_LANGUAGES_FIRST = "category_languages_first"
+        const val RECENT_LANGUAGES = "recent_languages"
         const val HIDDEN_SCRIPTS = "hidden_scripts"
         const val HIDDEN_TABS = "hidden_tabs"
         const val SUBTITLE_MATCH_SYSTEM = "subtitle_match_system"

@@ -35,6 +35,7 @@ import dev.quiblo.core.database.entity.FavoriteEntity
 import dev.quiblo.core.model.Channel
 import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.Profile
+import dev.quiblo.core.model.RecentLanguages
 import dev.quiblo.core.model.SeriesDetails
 import dev.quiblo.core.model.SourceKind
 import dev.quiblo.core.model.VodDetails
@@ -412,29 +413,99 @@ class ChannelRepository(
      * nothing gets the end of its own list instead, newest-listed first — the same fallback, and
      * the same honesty about it, as [observeRecentlyAdded].
      */
-    fun observeNewestOfKind(sourceId: Long, kind: MediaKind, limit: Int): Flow<RecentlyAddedFeed> =
+    fun observeNewestOfKind(
+        sourceId: Long,
+        kind: MediaKind,
+        limit: Int,
+        /**
+         * The languages the row may show, as [RecentLanguages] groups them. Empty for every
+         * language — what the warm-up and every caller before the setting existed ask for.
+         */
+        languages: List<String> = emptyList(),
+    ): Flow<RecentlyAddedFeed> =
         combine(
             profiles.activeProfile,
             channelDao.observeKindHasAddedDates(sourceId, kind.name).distinctUntilChanged(),
             mergeDuplicates,
-        ) { profile, hasDates, merge -> Triple(profile?.id ?: Profile.NONE_ID, hasDates, merge) }
-            .flatMapLatest { (profileId, hasDates, merge) ->
-                if (hasDates) {
+            groupFilterFor(sourceId, kind, languages),
+        ) { profile, hasDates, merge, groups ->
+            NewestAsk(profileId = profile?.id ?: Profile.NONE_ID, hasDates = hasDates, merge = merge, groups = groups)
+        }
+            .flatMapLatest { ask ->
+                val groups = ask.groups
+                if (ask.hasDates) {
                     channelDao.observeNewestOfKind(
-                        profileId = profileId,
+                        profileId = ask.profileId,
                         sourceId = sourceId,
                         kind = kind.name,
-                        limit = limit,
-                        mergeDuplicates = if (merge) 1 else 0,
+                        limit = groups.fetchLimit(limit),
+                        mergeDuplicates = if (ask.merge) 1 else 0,
+                        filterGroups = groups.filterGroups,
+                        groupTitles = groups.groupTitles,
                     ).map { rows ->
-                        RecentlyAddedFeed(rows.map { it.channel.toDomain(isFavorite = it.isFavorite) }, orderedByDate = true)
+                        val items = groups.keep(rows.map { it.channel.toDomain(isFavorite = it.isFavorite) }, limit)
+                        RecentlyAddedFeed(items, orderedByDate = true)
                     }
                 } else {
-                    tail(profileId, sourceId, kind, limit).map { RecentlyAddedFeed(it, orderedByDate = false) }
+                    tail(ask.profileId, sourceId, kind, limit, groups)
+                        .map { RecentlyAddedFeed(it, orderedByDate = false) }
                 }
             }
             .hidingUnreadableScriptsIn(hiddenScripts)
             .flowOn(browseDispatcher)
+
+    /**
+     * The categories of [kind] in the chosen [languages], kept current as the catalogue refreshes.
+     *
+     * No language chosen asks nothing of the database: every category is allowed.
+     */
+    private fun groupFilterFor(sourceId: Long, kind: MediaKind, languages: List<String>): Flow<GroupFilter> =
+        if (languages.isEmpty()) {
+            flowOf(GroupFilter.ALL)
+        } else {
+            channelDao.observeGroupTitlesOfKind(sourceId, kind.name)
+                .map { titles -> GroupFilter(languages, titles.filter { RecentLanguages.allows(languages, it) }) }
+                .distinctUntilChanged()
+        }
+
+    private data class NewestAsk(
+        val profileId: Long,
+        val hasDates: Boolean,
+        val merge: Boolean,
+        val groups: GroupFilter,
+    )
+
+    /**
+     * Which categories the Recently Added row may draw from, and how the query is told.
+     *
+     * Normally as a list bound into the query, so the database returns the newest [limit] of
+     * *those* categories and the row is full. A list too long to bind — Android 11's SQLite
+     * refuses more than 999 variables in one statement — falls back to reading a wider window
+     * unfiltered and filtering it here, which can come back short of [limit] on a catalogue
+     * where the chosen languages are rare among the newest titles, but never fails.
+     */
+    private data class GroupFilter(val languages: List<String>, val allowed: List<String>) {
+        private val bound = languages.isNotEmpty() && allowed.size <= MAX_BOUND_GROUP_TITLES
+        private val inMemory = languages.isNotEmpty() && !bound
+
+        val filterGroups: Int get() = if (bound) 1 else 0
+        val groupTitles: List<String> get() = if (bound) allowed else emptyList()
+
+        fun fetchLimit(limit: Int): Int = if (inMemory) limit * IN_MEMORY_WINDOW else limit
+
+        fun keep(items: List<Channel>, limit: Int): List<Channel> =
+            if (inMemory) items.filter { RecentLanguages.allows(languages, it.groupTitle) }.take(limit) else items
+
+        companion object {
+            val ALL = GroupFilter(emptyList(), emptyList())
+
+            /** Under SQLite's 999 with room for the query's own arguments. */
+            const val MAX_BOUND_GROUP_TITLES = 900
+
+            /** How many times the cap the unfiltered fallback reads before filtering. */
+            const val IN_MEMORY_WINDOW = 20
+        }
+    }
 
     private fun datedRecents(
         profileId: Long,
@@ -463,13 +534,21 @@ class ChannelRepository(
         ) { films, series -> RecentlyAddedFeed(items = interleave(films, series), orderedByDate = false) }
     }
 
-    private fun tail(profileId: Long, sourceId: Long, kind: MediaKind, limit: Int): Flow<List<Channel>> =
+    private fun tail(
+        profileId: Long,
+        sourceId: Long,
+        kind: MediaKind,
+        limit: Int,
+        groups: GroupFilter = GroupFilter.ALL,
+    ): Flow<List<Channel>> =
         channelDao.observeLastInListOrder(
             profileId = profileId,
             sourceId = sourceId,
             kind = kind.name,
-            limit = limit,
-        ).map { rows -> rows.map { it.channel.toDomain(isFavorite = it.isFavorite) } }
+            limit = groups.fetchLimit(limit),
+            filterGroups = groups.filterGroups,
+            groupTitles = groups.groupTitles,
+        ).map { rows -> groups.keep(rows.map { it.channel.toDomain(isFavorite = it.isFavorite) }, limit) }
             .hidingUnreadableScripts(hiddenScripts) { it.name }
 
     // Favourites are not filtered, and that is the point — see [hidingUnreadableScripts].

@@ -41,6 +41,7 @@ import dev.quiblo.core.model.CategorySort
 import dev.quiblo.core.model.MaxBitrateCap
 import dev.quiblo.core.model.MediaKind
 import dev.quiblo.core.model.PlayerSettings
+import dev.quiblo.core.model.RecentLanguages
 import dev.quiblo.core.model.SeekInterval
 import dev.quiblo.core.model.ThemeMode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -352,6 +353,30 @@ class SettingsViewModel(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), emptyList())
+
+    /**
+     * Languages the Recently Added row on Movies and Series may show. Arabic and English until
+     * the viewer changes it; empty means every language.
+     */
+    val recentLanguages: StateFlow<List<String>> = playerSettingsRepository.recentLanguages
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), RecentLanguages.DEFAULT)
+
+    /** Adds [language] to the Recently Added row's languages, or takes it off. */
+    fun toggleRecentLanguage(language: String) = viewModelScope.launch {
+        val current = recentLanguages.value
+        playerSettingsRepository.setRecentLanguages(if (language in current) current - language else current + language)
+    }
+
+    /**
+     * The chips the Recently Added language choice offers: what is chosen, Arabic, English and
+     * Asian, then the other languages this playlist's categories are in.
+     */
+    val recentLanguageOptions: StateFlow<List<String>> =
+        combine(recentLanguages, categoryLanguages, RecentLanguages::options).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS),
+            RecentLanguages.options(RecentLanguages.DEFAULT, emptyList()),
+        )
 
     fun setMergeCategories(enabled: Boolean) = viewModelScope.launch {
         playerSettingsRepository.setMergeCategories(enabled)

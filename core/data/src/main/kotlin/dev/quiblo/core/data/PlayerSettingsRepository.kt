@@ -28,6 +28,7 @@ import dev.quiblo.core.model.LiveGrouping
 import dev.quiblo.core.model.MaxBitrateCap
 import dev.quiblo.core.model.PlayerSettings
 import dev.quiblo.core.model.Profile
+import dev.quiblo.core.model.RecentLanguages
 import dev.quiblo.core.model.SeekInterval
 import dev.quiblo.core.model.SubtitleStyle
 import dev.quiblo.core.model.ThemeMode
@@ -126,6 +127,16 @@ class PlayerSettingsRepository(
 
     suspend fun setCategoryLanguagesFirst(value: List<String>) =
         store.setCategoryLanguagesFirst(profiles.activeProfileId, value)
+
+    /**
+     * Languages the Recently Added row on Movies and Series may show. Per profile. Arabic and
+     * English until the viewer chooses; empty means every language.
+     */
+    val recentLanguages: Flow<List<String>> =
+        perProfile { store.recentLanguages(it, RecentLanguages.DEFAULT) }
+
+    suspend fun setRecentLanguages(value: List<String>) =
+        store.setRecentLanguages(profiles.activeProfileId, value)
 
     /** How the Live screen groups channels. Per profile, like the other browse choices. */
     val liveGrouping: Flow<LiveGrouping> = perProfile(store::liveGrouping)

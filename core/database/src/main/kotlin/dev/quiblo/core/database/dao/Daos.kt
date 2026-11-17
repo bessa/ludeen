@@ -658,6 +658,7 @@ interface ChannelDao {
           AND c.groupTitle NOT IN (
                 SELECT o.originalTitle FROM category_overrides o
                 WHERE o.profileId = :profileId AND o.kind = c.kind AND o.isHidden = 1)
+          AND (:filterGroups = 0 OR c.groupTitle IN (:groupTitles))
           AND (:mergeDuplicates = 0 OR c.searchTitle = '' OR c.id = (
                 SELECT v.id FROM channels v
                 WHERE v.sourceId = c.sourceId AND v.kind = c.kind
@@ -667,13 +668,29 @@ interface ChannelDao {
         LIMIT :limit
         """,
     )
+    // Every argument is a bind in the query above; a parameter object would only be unpacked again.
+    @Suppress("LongParameterList")
     fun observeNewestOfKind(
         profileId: Long,
         sourceId: Long,
         kind: String,
         limit: Int,
         mergeDuplicates: Int,
+        /** 1 to keep only [groupTitles]' titles — the row's language choice; 0 for every category. */
+        filterGroups: Int,
+        groupTitles: List<String>,
     ): Flow<List<ChannelWithFavorite>>
+
+    /**
+     * The provider's category names for one kind, as they are filed on the titles.
+     *
+     * What the Recently Added row's language choice is read against: a category's language is
+     * in its name, so the row asks for the names, keeps the ones in the chosen languages and
+     * hands those back to [observeNewestOfKind]. Served by the `(sourceId, kind, groupTitle,
+     * sortIndex)` index without touching a row.
+     */
+    @Query("SELECT DISTINCT groupTitle FROM channels WHERE sourceId = :sourceId AND kind = :kind")
+    fun observeGroupTitlesOfKind(sourceId: Long, kind: String): Flow<List<String>>
 
     /** Whether any row of this one kind carries a provider date. */
     @Query(
@@ -729,15 +746,21 @@ interface ChannelDao {
           AND c.groupTitle NOT IN (
                 SELECT o.originalTitle FROM category_overrides o
                 WHERE o.profileId = :profileId AND o.kind = c.kind AND o.isHidden = 1)
+          AND (:filterGroups = 0 OR c.groupTitle IN (:groupTitles))
         ORDER BY c.sortIndex DESC
         LIMIT :limit
         """,
     )
+    // As for [observeNewestOfKind]: each argument is a bind in the query.
+    @Suppress("LongParameterList")
     fun observeLastInListOrder(
         profileId: Long,
         sourceId: Long,
         kind: String,
         limit: Int,
+        /** As in [observeNewestOfKind]: 1 to keep only [groupTitles], 0 for every category. */
+        filterGroups: Int,
+        groupTitles: List<String>,
     ): Flow<List<ChannelWithFavorite>>
 
     /**

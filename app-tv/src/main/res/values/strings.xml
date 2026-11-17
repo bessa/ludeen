@@ -247,6 +247,9 @@ Make one on the page below — it is quicker on a phone than on a remote — the
     <string name="tv_settings_category_sort_language">By language</string>
     <string name="tv_settings_category_languages_first">Languages first</string>
     <string name="tv_settings_category_languages_first_detail">Press languages in the order you want them at the top — Arabic, then English. Press again to remove.</string>
+    <string name="tv_settings_recent_languages">Recently added languages</string>
+    <string name="tv_settings_recent_languages_detail">The Recently Added row on Movies and Series shows the newest 50 titles in these languages. Press to add or remove.</string>
+    <string name="tv_settings_recent_languages_detail_all">None chosen, so the Recently Added row shows every language. Press one to keep only it.</string>
     <string name="tv_settings_category_kind">Editing categories for</string>
     <string name="tv_settings_category_whose">Hiding, renaming and reordering are yours alone. Everyone else on this television keeps their own list.</string>
     <string name="tv_settings_category_summary">%1$d categories, %2$d hidden</string>
