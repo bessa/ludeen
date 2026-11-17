@@ -616,9 +616,9 @@ class Media3PlayerController(
                 parameters.setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, 0))
                 // The override names this item's track group and dies with it. The language is
                 // what carries over, so the next episode starts in the one the viewer chose.
-                if (trackType == C.TRACK_TYPE_AUDIO) {
-                    group.getTrackFormat(0).language?.let { parameters.setPreferredAudioLanguage(it) }
-                }
+                group.getTrackFormat(0).language
+                    ?.takeIf { trackType == C.TRACK_TYPE_AUDIO }
+                    ?.let { parameters.setPreferredAudioLanguage(it) }
             }
         }
         player.trackSelectionParameters = parameters.build()
