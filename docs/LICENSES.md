@@ -189,8 +189,6 @@ components ship.
 - `co.touchlab:stately-concurrent-collections-jvm`
 - `co.touchlab:stately-strict`
 - `co.touchlab:stately-strict-jvm`
-- `com.charleskorn.kaml:kaml`
-- `com.charleskorn.kaml:kaml-jvm`
 - `com.google.accompanist:accompanist-drawablepainter`
 - `com.google.code.gson:gson`
 - `com.google.crypto.tink:tink-android`
@@ -240,8 +238,6 @@ components ship.
 - `io.ktor:ktor-io-jvm`
 - `io.ktor:ktor-network`
 - `io.ktor:ktor-network-jvm`
-- `io.ktor:ktor-openapi-schema`
-- `io.ktor:ktor-openapi-schema-jvm`
 - `io.ktor:ktor-serialization`
 - `io.ktor:ktor-serialization-jvm`
 - `io.ktor:ktor-serialization-kotlinx`
@@ -256,10 +252,6 @@ components ship.
 - `io.ktor:ktor-websocket-serialization-jvm`
 - `io.ktor:ktor-websockets`
 - `io.ktor:ktor-websockets-jvm`
-- `it.krzeminski:snakeyaml-engine-kmp`
-- `it.krzeminski:snakeyaml-engine-kmp-jvm`
-- `net.thauvin.erik.urlencoder:urlencoder-lib`
-- `net.thauvin.erik.urlencoder:urlencoder-lib-jvm`
 - `org.jetbrains.androidx.lifecycle:lifecycle-common`
 - `org.jetbrains.androidx.lifecycle:lifecycle-runtime`
 - `org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose`
@@ -302,8 +294,6 @@ components ship.
 - `org.jetbrains.kotlinx:kotlinx-coroutines-core`
 - `org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm`
 - `org.jetbrains.kotlinx:kotlinx-coroutines-slf4j`
-- `org.jetbrains.kotlinx:kotlinx-datetime`
-- `org.jetbrains.kotlinx:kotlinx-datetime-jvm`
 - `org.jetbrains.kotlinx:kotlinx-io-bytestring`
 - `org.jetbrains.kotlinx:kotlinx-io-bytestring-jvm`
 - `org.jetbrains.kotlinx:kotlinx-io-core`

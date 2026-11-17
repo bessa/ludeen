@@ -27,6 +27,19 @@ plugins {
     alias(libs.plugins.kover) apply false
 }
 
+// Ktor 3.6 made ktor-serialization-kotlinx depend on ktor-openapi-schema, which brings a YAML
+// stack (kaml, snakeyaml-engine-kmp, urlencoder-lib) into both APKs. Nothing here generates or
+// reads OpenAPI schemas: the clients only encode and decode JSON. Excluded rather than shipped
+// and attributed, so the inventory stays a list of things the app actually does. A later Ktor
+// that uses it on the JSON path would throw NoClassDefFoundError there: drop this exclusion and
+// attribute the modules in THIRD_PARTY_LICENSES instead.
+subprojects {
+    configurations.configureEach {
+        exclude(group = "io.ktor", module = "ktor-openapi-schema")
+        exclude(group = "io.ktor", module = "ktor-openapi-schema-jvm")
+    }
+}
+
 /**
  * Aggregate entry point used by CI: `./gradlew detektAll`.
  * Runs detekt across every module without needing to enumerate them in the workflow.
