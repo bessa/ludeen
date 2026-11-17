@@ -120,6 +120,7 @@
     <string name="player_aspect_fill">Fill</string>
     <string name="player_aspect_zoom">Zoom</string>
     <string name="player_aspect_stretch">Stretch</string>
+    <string name="player_aspect_expand_4_3">Expand 4:3</string>
     <!-- Forced picture shapes. The same in every language, so not translated. -->
     <string name="player_aspect_4_3" translatable="false">4:3</string>
     <string name="player_aspect_16_9" translatable="false">16:9</string>

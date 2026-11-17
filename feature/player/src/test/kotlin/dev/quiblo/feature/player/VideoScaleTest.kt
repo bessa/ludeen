@@ -103,8 +103,9 @@ class VideoScaleTest {
     fun `a video matching its container is left alone in every mode`() {
         AspectRatioMode.entries
             // Zoom magnifies by design, and the forced shapes (4:3, 16:9…) override the
-            // stream's own shape by design; both are tested on their own.
-            .filter { it != AspectRatioMode.ZOOM && it.forcedRatio == null }
+            // stream's own shape by design, and Expand 4:3 crops burned-in side bars by design;
+            // all are tested on their own.
+            .filter { it != AspectRatioMode.ZOOM && it != AspectRatioMode.EXPAND_4_3 && it.forcedRatio == null }
             .forEach { mode ->
                 val scale = videoScale(widescreen, widescreen, mode)
                 assertEquals(1f, scale.first, tolerance, "$mode scaled width")
@@ -154,5 +155,28 @@ class VideoScaleTest {
 
         assertEquals(1f, scale.second, tolerance)
         assertEquals(0.75f, scale.first, tolerance)
+    }
+
+    @Test
+    fun `expand 4 by 3 cuts burned-in side bars off a 16 by 9 frame and fills the screen`() {
+        val scale = videoScale(widescreen, widescreen, AspectRatioMode.EXPAND_4_3)
+
+        // The centred 4:3 is three quarters of the frame's width; it must now span the screen.
+        assertEquals(widescreen / fourThree, scale.first, tolerance)
+        assertEquals(1f, scale.second, tolerance)
+        assertEquals(1f, (fourThree / widescreen) * scale.first, tolerance)
+    }
+
+    @Test
+    fun `expand 4 by 3 stretches a true 4 by 3 frame without cropping it`() {
+        listOf(widescreen, fourThree, 21f / 9f).forEach { container ->
+            assertEquals(1f to 1f, videoScale(fourThree, container, AspectRatioMode.EXPAND_4_3), "on $container")
+        }
+    }
+
+    @Test
+    fun `expand 4 by 3 never shrinks a narrow frame and waits for the first frame`() {
+        assertEquals(1f to 1f, videoScale(1f, widescreen, AspectRatioMode.EXPAND_4_3))
+        assertEquals(1f to 1f, videoScale(null, widescreen, AspectRatioMode.EXPAND_4_3))
     }
 }

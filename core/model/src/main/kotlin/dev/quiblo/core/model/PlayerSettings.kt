@@ -149,6 +149,17 @@ enum class AspectRatioMode {
     STRETCH,
 
     /**
+     * A 4:3 picture, black side bars cut off, stretched to fill the screen.
+     *
+     * For old films and SD channels. It handles both ways they arrive: a true 4:3 frame (which
+     * [STRETCH] alone would already fill), and — the common case on VOD panels — a 4:3 picture
+     * re-encoded inside a 16:9 frame with the black bars burned in. That one reports itself as
+     * 16:9, so [FIT], [FILL], [STRETCH] and [RATIO_16_9] all leave the bars where they are;
+     * this mode assumes the picture is the centred 4:3 of the frame and throws the rest away.
+     */
+    EXPAND_4_3,
+
+    /**
      * The picture forced to a shape, as large as fits the screen without cropping.
      *
      * For streams whose own shape is wrong — a 4:3 channel squashed into a 16:9 frame, or the

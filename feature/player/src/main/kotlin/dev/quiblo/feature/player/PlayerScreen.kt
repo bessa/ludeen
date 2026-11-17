@@ -962,6 +962,7 @@ fun AspectRatioMode.labelRes(): Int = when (this) {
     AspectRatioMode.FILL -> R.string.player_aspect_fill
     AspectRatioMode.ZOOM -> R.string.player_aspect_zoom
     AspectRatioMode.STRETCH -> R.string.player_aspect_stretch
+    AspectRatioMode.EXPAND_4_3 -> R.string.player_aspect_expand_4_3
     AspectRatioMode.RATIO_4_3 -> R.string.player_aspect_4_3
     AspectRatioMode.RATIO_16_9 -> R.string.player_aspect_16_9
     AspectRatioMode.RATIO_21_9 -> R.string.player_aspect_21_9

@@ -614,6 +614,11 @@ class Media3PlayerController(
             if (group != null) {
                 parameters.setTrackTypeDisabled(trackType, false)
                 parameters.setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, 0))
+                // The override names this item's track group and dies with it. The language is
+                // what carries over, so the next episode starts in the one the viewer chose.
+                if (trackType == C.TRACK_TYPE_AUDIO) {
+                    group.getTrackFormat(0).language?.let { parameters.setPreferredAudioLanguage(it) }
+                }
             }
         }
         player.trackSelectionParameters = parameters.build()
@@ -1100,17 +1105,30 @@ class Media3PlayerController(
     ): TrackSelectionParameters.Builder =
         setMaxVideoBitrate(cap.bitsPerSecond ?: Int.MAX_VALUE)
 
-    private fun Tracks.toOptions(trackType: @C.TrackType Int): List<TrackOption> =
-        groups.filter { it.type == trackType && it.length > 0 }
-            .map { group ->
-                val format = group.getTrackFormat(0)
-                TrackOption(
-                    id = groupId(group),
-                    label = format.label ?: format.language ?: "Track",
-                    language = format.language,
-                    isSelected = group.isSelected,
-                )
-            }
+    private fun Tracks.toOptions(trackType: @C.TrackType Int): List<TrackOption> {
+        val ofType = groups.filter { it.type == trackType && it.length > 0 }
+        // An audio track this device cannot decode or pass through plays as silence. Offering it
+        // is offering a way to lose the sound from a menu, so it is left out — unless nothing is
+        // playable, when hiding everything would only hide why there is no sound.
+        val offered = if (trackType == C.TRACK_TYPE_AUDIO) {
+            ofType.filter { it.isSupported }.ifEmpty { ofType }
+        } else {
+            ofType
+        }
+        return offered.map { group ->
+            val format = group.getTrackFormat(0)
+            TrackOption(
+                id = groupId(group),
+                label = if (trackType == C.TRACK_TYPE_AUDIO) {
+                    audioTrackLabel(format.label, format.language, format.channelCount, format.sampleMimeType)
+                } else {
+                    format.label ?: format.language ?: "Track"
+                },
+                language = format.language,
+                isSelected = group.isSelected,
+            )
+        }
+    }
 
     private companion object {
         /**

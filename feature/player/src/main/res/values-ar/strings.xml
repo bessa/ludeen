@@ -107,6 +107,7 @@
     <string name="player_aspect_fill">ملء</string>
     <string name="player_aspect_zoom">تكبير</string>
     <string name="player_aspect_stretch">تمديد</string>
+    <string name="player_aspect_expand_4_3">توسيع 4:3</string>
 
     <string name="player_brightness">السطوع</string>
     <string name="player_volume">مستوى الصوت</string>

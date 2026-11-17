@@ -31,6 +31,7 @@ fun videoScale(
     mode: AspectRatioMode,
 ): Pair<Float, Float> {
     if (mode == AspectRatioMode.STRETCH) return 1f to 1f
+    if (mode == AspectRatioMode.EXPAND_4_3) return expandFourThree(videoAspectRatio)
     if (containerAspectRatio <= 0f) return 1f to 1f
 
     // A forced shape: the surface fills the screen, so draw the forced ratio letterboxed inside
@@ -60,4 +61,19 @@ fun videoScale(
 
     val extra = mode.extraScale
     return (base.first * extra) to (base.second * extra)
+}
+
+private const val FOUR_THREE = 4f / 3f
+
+/**
+ * [AspectRatioMode.EXPAND_4_3]: the surface already fills the screen, so the frame is stretched
+ * to it. Widening it by `frame / (4:3)` pushes everything outside the centred 4:3 picture — the
+ * burned-in side bars — past the clipped edges, and leaves that picture filling the screen.
+ *
+ * A frame that is 4:3 or narrower has no side bars to lose and is simply stretched. Before the
+ * first frame nothing is known, and 1:1 avoids a jump, as everywhere else here.
+ */
+private fun expandFourThree(videoAspectRatio: Float?): Pair<Float, Float> {
+    val video = videoAspectRatio?.takeIf { it > 0f } ?: return 1f to 1f
+    return maxOf(1f, video / FOUR_THREE) to 1f
 }

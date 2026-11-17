@@ -107,6 +107,7 @@
     <string name="player_aspect_fill">Remplir</string>
     <string name="player_aspect_zoom">Zoom</string>
     <string name="player_aspect_stretch">Étirer</string>
+    <string name="player_aspect_expand_4_3">Étendre 4:3</string>
 
     <string name="player_brightness">Luminosité</string>
     <string name="player_volume">Volume</string>
