@@ -175,6 +175,9 @@ fun TvPlayerScreen(
     var trackMenuAt: TrackMenuKind? by remember { mutableStateOf(null) }
     var zapNotice: String? by remember { mutableStateOf(null) }
 
+    // The live channel list over the left of the picture (Ludeen). Left opens it on a channel.
+    var channelListOpen by remember { mutableStateOf(false) }
+
     // The badge for a seek or a resume made with the controls hidden. A new value per press, so
     // the timeout below restarts on every one of a run of taps.
     var osdFlash: TvOsdFlash? by remember { mutableStateOf(null) }
@@ -245,10 +248,12 @@ fun TvPlayerScreen(
         trackMenuOpen = trackMenuAt != null,
         controlsVisible = controlsVisible,
         isOfferingNextEpisode = isOfferingNextEpisode,
+        channelListOpen = channelListOpen,
     )
 
     fun applyPlayerBack(action: TvPlayerBackAction) {
         when (action) {
+            TvPlayerBackAction.CloseChannelList -> channelListOpen = false
             TvPlayerBackAction.CloseTrackMenu -> trackMenuAt = null
             TvPlayerBackAction.HideControls -> hideControls()
             TvPlayerBackAction.DismissNextEpisode -> nextEpisodeDismissed = true
@@ -276,8 +281,8 @@ fun TvPlayerScreen(
      * its node exists but has not been placed — it does not throw — and the `runCatching` this
      * replaces dropped that answer on the floor. `022` #4, in the one place it had been missed.
      */
-    LaunchedEffect(controlsVisible, trackMenuAt, isOfferingNextEpisode) {
-        val isSomethingElseUp = controlsVisible || trackMenuAt != null || isOfferingNextEpisode
+    LaunchedEffect(controlsVisible, trackMenuAt, isOfferingNextEpisode, channelListOpen) {
+        val isSomethingElseUp = controlsVisible || trackMenuAt != null || isOfferingNextEpisode || channelListOpen
         if (!isSomethingElseUp) rootFocus.insistOnFocus()
     }
 
@@ -324,6 +329,9 @@ fun TvPlayerScreen(
     // controller has exhausted its retries, so this is the point where there is nothing
     // left to wait for.
     val hasFailed = state.status == PlaybackStatus.ERROR
+
+    // The error screen replaces the list; a list left flagged open would cost a Back press.
+    LaunchedEffect(hasFailed) { if (hasFailed) channelListOpen = false }
 
     /*
      * Immersive mode.
@@ -443,6 +451,8 @@ fun TvPlayerScreen(
                         // the category — which is not what either key means to a viewer.
                         canZap = request is TvPlaybackRequest.Live,
                         canStepEpisode = episode != null,
+                        hasChannelList = (request as? TvPlaybackRequest.Live)?.queue?.isNotEmpty() == true,
+                        isChannelListOpen = channelListOpen,
                     ),
                     actions = KeyActions(
                         showControls = { showControls() },
@@ -466,6 +476,10 @@ fun TvPlayerScreen(
                         // Only when there is a choice. Opening an empty panel would be the
                         // hollow-feature shape this project has deleted nine of.
                         openTracks = { if (!trackMenu.isEmpty) trackMenuAt = TrackMenuKind.SUBTITLES },
+                        openChannelList = {
+                            hideControls()
+                            channelListOpen = true
+                        },
                     ),
                 )
             },
@@ -560,6 +574,21 @@ fun TvPlayerScreen(
             subtitleNotice = subtitleNotice,
             diagnosis = diagnosis,
         )
+
+        val live = request as? TvPlaybackRequest.Live
+        if (channelListOpen && live != null && !hasFailed) {
+            TvChannelListPanel(
+                channels = live.queue,
+                currentIndex = live.index,
+                onSelect = { index ->
+                    channelListOpen = false
+                    // Zapping by the distance replaces the step the way Up and Down do, so Back
+                    // still leaves to where the viewer started watching.
+                    if (index != live.index) onZap(index - live.index)
+                },
+                onDismiss = { channelListOpen = false },
+            )
+        }
     }
 
     LaunchedEffect(subtitleNotice) {
@@ -780,6 +809,8 @@ internal data class KeyActions(
      * control. The key map only says which press means "show me the choices".
      */
     val openTracks: () -> Unit = {},
+    /** Opens the live channel list over the left of the picture. */
+    val openChannelList: () -> Unit = {},
 )
 
 /**
@@ -801,6 +832,10 @@ internal data class KeyContext(
     val isOfferingNextEpisode: Boolean = false,
     /** Only a series has episodes to step between. A film and a channel have none. */
     val canStepEpisode: Boolean = false,
+    /** A live channel that came from a list, which Left opens. */
+    val hasChannelList: Boolean = false,
+    /** The channel list is up, and owns the remote. */
+    val isChannelListOpen: Boolean = false,
 )
 
 /**
@@ -825,6 +860,9 @@ internal fun handleKey(key: Key, context: KeyContext, actions: KeyActions): Bool
     // Nor does a finished one. The banner's own two buttons are the only things worth
     // pressing, and they are focusable, so the whole remote is theirs.
     if (context.isOfferingNextEpisode) return false
+
+    // Nor while the channel list is open: its rows hold focus, and every arrow is theirs.
+    if (context.isChannelListOpen) return false
 
     if (context.areControlsVisible && key.isDirection()) return false
 
@@ -857,6 +895,15 @@ private fun handleOverlayKey(key: Key, context: KeyContext, actions: KeyActions)
         } else {
             actions.showControls()
             true
+        }
+
+        // Left on a live channel opens the channel list down the left of the picture (Ludeen).
+        // Live has nothing for Left to seek, so this is the only thing it means there.
+        Key.DirectionLeft -> if (context.hasChannelList) {
+            actions.openChannelList()
+            true
+        } else {
+            false
         }
 
         // Remotes that do have a subtitle key should use it. Nothing depends on this existing.

@@ -90,4 +90,19 @@ class TvPlayerBackKeysTest {
         assertEquals(TvPlayerBackAction.Exit, action)
         assertFalse(tvPlayerBackConsumesKey(action))
     }
+
+    @Test
+    fun `back closes the channel list first and stays on the channel`() {
+        val action = tvPlayerBackAction(
+            TvPlayerBackState(
+                trackMenuOpen = false,
+                controlsVisible = false,
+                isOfferingNextEpisode = false,
+                channelListOpen = true,
+            ),
+        )
+
+        assertEquals(TvPlayerBackAction.CloseChannelList, action)
+        assertTrue(tvPlayerBackConsumesKey(action))
+    }
 }

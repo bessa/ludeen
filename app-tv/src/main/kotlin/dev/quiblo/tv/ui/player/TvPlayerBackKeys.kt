@@ -28,10 +28,15 @@ data class TvPlayerBackState(
     val trackMenuOpen: Boolean,
     val controlsVisible: Boolean,
     val isOfferingNextEpisode: Boolean,
+    /** The live channel list over the left of the picture. */
+    val channelListOpen: Boolean = false,
 )
 
 /** What a back press does inside the television player. */
 sealed interface TvPlayerBackAction {
+
+    /** Close the live channel list; stay on the channel. */
+    data object CloseChannelList : TvPlayerBackAction
 
     /** Close the audio/subtitle panel; leave the controls as they are. */
     data object CloseTrackMenu : TvPlayerBackAction
@@ -63,6 +68,7 @@ sealed interface TvPlayerBackAction {
  * - nothing on top → leave playback
  */
 fun tvPlayerBackAction(state: TvPlayerBackState): TvPlayerBackAction = when {
+    state.channelListOpen -> TvPlayerBackAction.CloseChannelList
     state.trackMenuOpen -> TvPlayerBackAction.CloseTrackMenu
     state.controlsVisible -> TvPlayerBackAction.HideControls
     state.isOfferingNextEpisode -> TvPlayerBackAction.DismissNextEpisode

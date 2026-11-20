@@ -40,6 +40,7 @@ class TvPlayerKeyMapTest {
     private var aspectCycles = 0
     private var tracksOpened = 0
     private var episodeSteps = 0
+    private var channelListsOpened = 0
 
     private val actions = KeyActions(
         showControls = { controlsShown++ },
@@ -49,6 +50,7 @@ class TvPlayerKeyMapTest {
         stepEpisode = { episodeSteps += it },
         cycleAspect = { aspectCycles++ },
         openTracks = { tracksOpened++ },
+        openChannelList = { channelListsOpened++ },
     )
 
     @Test
@@ -192,6 +194,8 @@ class TvPlayerKeyMapTest {
         areControlsVisible: Boolean = false,
         isOfferingNextEpisode: Boolean = false,
         canStepEpisode: Boolean = false,
+        hasChannelList: Boolean = false,
+        isChannelListOpen: Boolean = false,
     ) = handleKey(
         key = key,
         context = KeyContext(
@@ -201,6 +205,8 @@ class TvPlayerKeyMapTest {
             areControlsVisible = areControlsVisible,
             isOfferingNextEpisode = isOfferingNextEpisode,
             canStepEpisode = canStepEpisode,
+            hasChannelList = hasChannelList,
+            isChannelListOpen = isChannelListOpen,
         ),
         actions = actions,
     )
@@ -286,5 +292,34 @@ class TvPlayerKeyMapTest {
         assertEquals(0, skipped)
         assertEquals(0, controlsShown)
         assertEquals(0, aspectCycles)
+    }
+
+    @Test
+    fun `left on a live channel opens the channel list`() {
+        assertTrue(press(Key.DirectionLeft, isSeekable = false, canZap = true, hasChannelList = true))
+
+        assertEquals(1, channelListsOpened)
+        assertEquals(0, skipped)
+    }
+
+    @Test
+    fun `left on a film still seeks rather than opening a list`() {
+        assertTrue(press(Key.DirectionLeft, isSeekable = true, canZap = false))
+
+        assertEquals(0, channelListsOpened)
+        assertEquals(-1, skipped)
+    }
+
+    @Test
+    fun `the open channel list owns every key`() {
+        listOf(Key.DirectionUp, Key.DirectionDown, Key.DirectionLeft, Key.DirectionCenter, Key.ChannelUp).forEach {
+            assertFalse(
+                press(it, isSeekable = false, canZap = true, hasChannelList = true, isChannelListOpen = true),
+                "$it",
+            )
+        }
+        assertEquals(0, zapped)
+        assertEquals(0, playPauses)
+        assertEquals(0, channelListsOpened)
     }
 }
