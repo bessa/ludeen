@@ -87,12 +87,47 @@ class TvPlayerKeyMapTest {
         assertTrue(press(Key.Menu, isSeekable = false, canZap = true))
         assertTrue(press(Key.Info, isSeekable = true, canZap = false))
 
-        // Up doubles as the aspect key on a film, where zapping does not apply and the key
-        // is otherwise dead. The Haier's remote has no Menu key, so without this there is no
-        // way to reach aspect on a film at all.
-        assertTrue(press(Key.DirectionUp, isSeekable = true, canZap = false))
+        assertEquals(2, aspectCycles)
+    }
 
-        assertEquals(3, aspectCycles)
+    @Test
+    fun `up and down both bring the controls on a film`() {
+        // Up used to cycle aspect here. A remote without Menu reaches aspect from the controls'
+        // own button now, and up is the key a viewer reaches for to see them.
+        assertTrue(press(Key.DirectionUp, isSeekable = true, canZap = false))
+        assertTrue(press(Key.DirectionDown, isSeekable = true, canZap = false))
+
+        assertEquals(2, controlsShown)
+        assertEquals(0, aspectCycles)
+    }
+
+    @Test
+    fun `with the controls hidden left right and ok act on a film without showing them`() {
+        assertTrue(press(Key.DirectionRight, isSeekable = true, canZap = false))
+        assertTrue(press(Key.DirectionRight, isSeekable = true, canZap = false))
+        assertTrue(press(Key.DirectionLeft, isSeekable = true, canZap = false))
+        assertTrue(press(Key.DirectionCenter, isSeekable = true, canZap = false))
+
+        assertEquals(1, skipped)
+        assertEquals(1, playPauses)
+        assertEquals(0, controlsShown)
+    }
+
+    @Test
+    fun `ok on a live channel still brings the controls with the pause`() {
+        assertTrue(press(Key.DirectionCenter, isSeekable = false, canZap = true))
+
+        assertEquals(1, playPauses)
+        assertEquals(1, controlsShown)
+    }
+
+    @Test
+    fun `the rewind and fast forward keys still bring the bar up`() {
+        assertTrue(press(Key.MediaFastForward, isSeekable = true, canZap = false))
+        assertTrue(press(Key.MediaRewind, isSeekable = true, canZap = false))
+
+        assertEquals(0, skipped)
+        assertEquals(2, controlsShown)
     }
 
     @Test

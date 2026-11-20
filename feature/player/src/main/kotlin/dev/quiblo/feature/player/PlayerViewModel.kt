@@ -18,6 +18,7 @@
 
 package dev.quiblo.feature.player
 
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.quiblo.core.data.ApplicationScope
@@ -226,9 +227,23 @@ class PlayerViewModel(
     }
 
     /** Skips by the configured interval, clamped so a rewind cannot run past the start. */
-    fun skipBy(direction: Int) {
-        val delta = settings.value.seekInterval.millis * direction
-        controller.seekTo((state.value.positionMillis + delta).coerceAtLeast(0L))
+    private val seekChain = SeekChain()
+
+    /**
+     * Skips one seek interval in [direction] and returns where it sent the film.
+     *
+     * Presses in quick succession add up — see [SeekChain] — and the returned position is the
+     * one the television's seek badge shows, since the engine's own lags half a second behind.
+     */
+    fun skipBy(direction: Int): Long {
+        val target = seekChain.next(
+            nowMillis = SystemClock.elapsedRealtime(),
+            positionMillis = state.value.positionMillis,
+            deltaMillis = settings.value.seekInterval.millis * direction,
+            durationMillis = state.value.durationMillis,
+        )
+        controller.seekTo(target)
+        return target
     }
 
     /**
@@ -467,7 +482,10 @@ class PlayerViewModel(
         if (state.value.isPlaying) controller.pause() else controller.play()
     }
 
-    fun seekTo(positionMillis: Long) = controller.seekTo(positionMillis)
+    fun seekTo(positionMillis: Long) {
+        seekChain.reset()
+        controller.seekTo(positionMillis)
+    }
 
     fun retry() = controller.retry()
 

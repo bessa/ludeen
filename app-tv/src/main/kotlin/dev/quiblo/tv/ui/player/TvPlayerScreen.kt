@@ -175,6 +175,10 @@ fun TvPlayerScreen(
     var trackMenuAt: TrackMenuKind? by remember { mutableStateOf(null) }
     var zapNotice: String? by remember { mutableStateOf(null) }
 
+    // The badge for a seek or a resume made with the controls hidden. A new value per press, so
+    // the timeout below restarts on every one of a run of taps.
+    var osdFlash: TvOsdFlash? by remember { mutableStateOf(null) }
+
     // Bumped on every press while the controls are up, purely to restart their timeout. See
     // the effect below for why it cannot be read off the key handler.
     var interactionTick by remember { mutableIntStateOf(0) }
@@ -299,6 +303,13 @@ fun TvPlayerScreen(
         if (controlsVisible && trackMenuAt == null && state.status == PlaybackStatus.PLAYING) {
             delay(CONTROLS_TIMEOUT_MILLIS)
             hideControls()
+        }
+    }
+
+    LaunchedEffect(osdFlash) {
+        if (osdFlash != null) {
+            delay(OSD_FLASH_MILLIS)
+            osdFlash = null
         }
     }
 
@@ -436,10 +447,16 @@ fun TvPlayerScreen(
                     actions = KeyActions(
                         showControls = { showControls() },
                         playPause = {
+                            val willPlay = !state.isPlaying
                             viewModel.togglePlayPause()
-                            showControls()
+                            // A pause needs no flash: the badge stays while paused, from the status.
+                            if (willPlay) osdFlash = TvOsdFlash(TvOsdKind.PLAY, state.positionMillis)
                         },
-                        skip = { viewModel.skipBy(it) },
+                        skip = { direction ->
+                            val target = viewModel.skipBy(direction)
+                            val kind = if (direction < 0) TvOsdKind.REWIND else TvOsdKind.FORWARD
+                            osdFlash = TvOsdFlash(kind, target)
+                        },
                         zap = onZap,
                         stepEpisode = onStepEpisode,
                         cycleAspect = {
@@ -476,6 +493,16 @@ fun TvPlayerScreen(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(24.dp),
+            )
+        }
+
+        // Only while the controls are down: when they are up their own bar says all of this.
+        if (!controlsVisible && !hasFailed && request !is TvPlaybackRequest.Live) {
+            TvOsdBadge(
+                flash = osdFlash,
+                isPaused = state.status == PlaybackStatus.PAUSED,
+                positionMillis = state.positionMillis,
+                durationMillis = state.durationMillis,
             )
         }
 
@@ -737,7 +764,9 @@ private fun PlayerViewModel.load(request: TvPlaybackRequest) = when (request) {
  */
 internal data class KeyActions(
     val showControls: () -> Unit,
+    /** Plays or pauses, and nothing else. Whether the controls come up is the key map's call. */
     val playPause: () -> Unit,
+    /** Seeks one interval, and nothing else. Same rule as [playPause]. */
     val skip: (Int) -> Unit,
     val zap: (Int) -> Unit,
     /** Along the series, for the remotes that have the two keys for it. */
@@ -778,7 +807,10 @@ internal data class KeyContext(
  * The whole remote-control vocabulary.
  *
  * **Two states, and the D-pad means different things in each.** With nothing on screen the
- * arrows drive playback: left and right seek, up and down zap or reveal. With the controls up
+ * arrows drive playback. On a film or an episode: left and right seek, OK pauses and resumes,
+ * and up or down bring the controls up — none of the first three puts the controls on screen,
+ * so a viewer can tap through a scene, or pause on a frame, with nothing drawn over it but a
+ * small badge. On a live channel up and down zap. With the controls up
  * they belong to the controls, and this returns false for every one of them so that Compose's
  * own focus traversal moves between the buttons — a key consumed here is a key focus never
  * sees, and the first version of these controls was unreachable for exactly that reason.
@@ -835,9 +867,7 @@ private fun handleOverlayKey(key: Key, context: KeyContext, actions: KeyActions)
         }
 
         // Aspect ratio. Menu is the natural key and many remotes have it; the Haier's does
-        // not, so up doubles as the aspect key on a film, where it is otherwise dead because
-        // zapping is live-only. There is a button for it now as well, which is what this
-        // pairing was always a substitute for.
+        // not, and for it there is the aspect button in the controls (Up, then the options row).
         Key.Menu, Key.Info -> {
             actions.cycleAspect()
             true
@@ -850,28 +880,26 @@ private fun handleOverlayKey(key: Key, context: KeyContext, actions: KeyActions)
 @Suppress("CyclomaticComplexMethod")
 private fun handleTransportKey(key: Key, context: KeyContext, actions: KeyActions): Boolean =
     when (key) {
+        // Pauses on the frame, without drawing the controls over it on a film; the badge says
+        // it is paused. Live keeps the controls, which is where its channel name and clock are.
         Key.DirectionCenter, Key.Enter, Key.MediaPlayPause -> {
             actions.playPause()
+            if (context.canZap) actions.showControls()
             true
         }
 
         // Seeking is meaningless on a live stream, so the keys are left unhandled there rather
         // than silently doing nothing — the same rule the phone app applies to its skip buttons.
-        Key.DirectionLeft, Key.MediaRewind -> if (context.isSeekable) {
-            actions.skip(-1)
-            actions.showControls()
-            true
-        } else {
-            false
-        }
-
-        Key.DirectionRight, Key.MediaFastForward -> if (context.isSeekable) {
-            actions.skip(1)
-            actions.showControls()
-            true
-        } else {
-            false
-        }
+        // The arrows seek quietly (the badge shows where to); the media keys bring the bar up,
+        // as they always have.
+        Key.DirectionLeft, Key.DirectionRight, Key.MediaRewind, Key.MediaFastForward ->
+            if (context.isSeekable) {
+                actions.skip(if (key == Key.DirectionLeft || key == Key.MediaRewind) -1 else 1)
+                if (key == Key.MediaRewind || key == Key.MediaFastForward) actions.showControls()
+                true
+            } else {
+                false
+            }
 
         // The two keys that mean this on a remote that has them. Unlike the arrows they are
         // unambiguous, so they work whether or not the controls are on screen.
@@ -890,13 +918,18 @@ private fun handleTransportKey(key: Key, context: KeyContext, actions: KeyAction
         }
 
         // Up and down the channel list, which is what a television remote's channel keys and
-        // its D-pad up both mean to a viewer watching live.
-        Key.DirectionUp, Key.ChannelUp -> if (context.canZap) {
+        // its D-pad up both mean to a viewer watching live. On a film up brings the controls,
+        // the same as down: aspect is a button there now, and on Menu or Info.
+        Key.DirectionUp -> {
+            if (context.canZap) actions.zap(-1) else actions.showControls()
+            true
+        }
+
+        Key.ChannelUp -> if (context.canZap) {
             actions.zap(-1)
             true
         } else {
-            actions.cycleAspect()
-            true
+            false
         }
 
         Key.DirectionDown, Key.ChannelDown -> if (context.canZap) {
@@ -1254,6 +1287,7 @@ private const val AMBIENT_SAMPLE_MILLIS = 1_000L
  */
 private const val CONTROLS_TIMEOUT_MILLIS = 6_000L
 private const val ZAP_NOTICE_MILLIS = 2_500L
+private const val OSD_FLASH_MILLIS = 1_500L
 
 /** Longer than the zap notice: this one is a sentence, and it is read from across a room. */
 private const val SUBTITLE_NOTICE_MILLIS = 5_000L
