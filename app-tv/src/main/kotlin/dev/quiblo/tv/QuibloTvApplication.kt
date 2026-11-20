@@ -74,9 +74,9 @@ class QuibloTvApplication : Application(), Configuration.Provider {
      * television is switched off at the wall rather than exited. Deleting the row takes its
      * favourites and resume points with it by foreign key.
      *
-     * Clearing the chosen id is the other half, and it is #016: a television is the device a
-     * household shares, so it has to ask who is watching every time it opens rather than once
-     * when it was installed.
+     * The chosen profile is kept (Ludeen): this television has one household that does not want
+     * to be asked who is watching every time, so it opens straight into the last profile. Switch
+     * profile in the bar still brings the chooser. Upstream clears it here (#016).
      */
     private fun beginSession() {
         val profiles: ProfileRepository = getKoin().get()
@@ -91,7 +91,7 @@ class QuibloTvApplication : Application(), Configuration.Provider {
         getKoin().get<SyncScheduler>().scheduleWithoutCatalogueSync()
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            profiles.beginSession()
+            profiles.beginSession(keepChosen = true)
             // Catalogues written before schema 19 carry no cleaned title and no script mask.
             // After the first pass this costs one indexed count, and a fresh install never has
             // work here at all. Nothing waits for it — see [CatalogueIdentityBackfill].

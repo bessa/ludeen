@@ -169,6 +169,31 @@ class ProfileRepositoryTest {
     }
 
     @Test
+    fun `a launch that keeps the choice opens straight into the last profile`() = runTest {
+        val repository = repository()
+        val profile = repository.addProfile("Mahmoud")!!
+        repository.select(profile)
+        repository.awaitWatching()
+
+        repository.beginSession(keepChosen = true)
+
+        assertEquals(profile.id, repository.activeProfile.value?.id)
+        assertEquals(profile.id, repository.activeProfileState.filterNotNull().first().profile?.id)
+    }
+
+    @Test
+    fun `a launch that keeps the choice still ends a guest and asks again`() = runTest {
+        val repository = repository()
+        repository.startGuestSession("Guest")
+        repository.awaitWatching()
+
+        repository.beginSession(keepChosen = true)
+        repository.awaitChooser()
+
+        assertNull(repository.activeProfileState.first { it?.profile == null }?.profile)
+    }
+
+    @Test
     fun `leaving a named profile keeps it`() = runTest {
         val repository = repository()
         val profile = repository.addProfile("Mahmoud")!!

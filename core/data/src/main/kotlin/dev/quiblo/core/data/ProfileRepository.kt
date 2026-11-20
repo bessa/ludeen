@@ -74,6 +74,21 @@ class ProfileRepository(
         rows.firstOrNull { it.id == storedId }?.toDomain()
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
+    /**
+     * [activeProfile], but able to say "not read yet": null until the stored choice and the
+     * profiles have both been read, then [ActiveProfile] carrying the profile or nobody.
+     *
+     * [activeProfile] starts at null, which is also its "nobody chosen". That was harmless while
+     * every launch cleared the choice; on a build that keeps it, a gate reading [activeProfile]
+     * would flash the chooser for the frames before storage answers.
+     */
+    val activeProfileState: StateFlow<ActiveProfile?> = combine(
+        profileStore.activeProfileId,
+        profileDao.observeAll(),
+    ) { storedId, rows ->
+        ActiveProfile(rows.firstOrNull { it.id == storedId }?.toDomain())
+    }.stateIn(scope, SharingStarted.Eagerly, null)
+
     /** The id every profile-scoped query is filtered by. [Profile.NONE_ID] when nobody has chosen. */
     val activeProfileId: Long get() = activeProfile.value?.id ?: Profile.NONE_ID
 
@@ -109,12 +124,14 @@ class ProfileRepository(
      * There is deliberately no "remember me". A switch that defaults to skipping the question
      * reintroduces this bug for whoever leaves it on, and the question costs one press.
      */
-    suspend fun beginSession() {
+    suspend fun beginSession(keepChosen: Boolean = false) {
         endGuestSessions()
         // Settings left by profiles deleted before `BUG-040`, and by any delete a crash interrupted
         // between the row and the preferences. NONE_ID is kept: it is nobody, not somebody gone.
         leftovers.clearPreferencesOtherThan(profileDao.allIds().toSet() + Profile.NONE_ID)
-        profileStore.setActiveProfileId(null)
+        // [keepChosen] is the Ludeen television's choice: one viewer, straight back into the last
+        // profile. A guest is still gone — its row went above, which leaves nobody chosen.
+        if (!keepChosen) profileStore.setActiveProfileId(null)
     }
 
     suspend fun addProfile(name: String, avatar: String? = null): Profile? {
@@ -211,3 +228,6 @@ class ProfileRepository(
 }
 
 private fun ProfileEntity.toDomain() = Profile(id = id, name = name, isGuest = isGuest, avatar = avatar)
+
+/** Who is watching, once that is known; see [ProfileRepository.activeProfileState]. */
+data class ActiveProfile(val profile: Profile?)

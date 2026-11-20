@@ -213,7 +213,12 @@ private fun TvAppBehindConsent(onExit: () -> Unit) {
     // gate is here rather than inside the shell so that no screen below it ever has to cope
     // with there being no profile — they simply are not composed yet.
     val profiles: ProfileRepository = koinInject()
-    val activeProfile by profiles.activeProfile.collectAsStateWithLifecycle()
+    val profileState by profiles.activeProfileState.collectAsStateWithLifecycle()
+
+    // Storage has not answered yet — a frame or two. Blank rather than the chooser, which would
+    // flash at a viewer whose last profile is about to be opened for them.
+    val resolved = profileState ?: return
+    val activeProfile = resolved.profile
 
     if (activeProfile == null) {
         // The update offer over the chooser too (`BUG-061`): 0.27.0 could not get past it while a
@@ -237,7 +242,7 @@ private fun TvAppBehindConsent(onExit: () -> Unit) {
      * Keyed on the id, so it runs once per profile rather than once per recomposition.
      */
     val warmup: CatalogueWarmup = koinInject()
-    LaunchedEffect(activeProfile?.id) { warmup.warm() }
+    LaunchedEffect(activeProfile.id) { warmup.warm() }
 
     // Leaving a profile is a suspending write, and the screen it is triggered from is about
     // to stop existing — so it runs on a scope that outlives the composition.
@@ -324,7 +329,8 @@ private fun TvAppBehindConsent(onExit: () -> Unit) {
                 pop = pop,
                 onExit = {
                     scope.launch {
-                        profiles.signOut()
+                        // The profile is kept for next time; only a guest is ended on the way out.
+                        if (activeProfile.isGuest) profiles.signOut()
                         onExit()
                     }
                 },
