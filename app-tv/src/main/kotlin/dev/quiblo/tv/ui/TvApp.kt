@@ -464,6 +464,9 @@ private fun TvOverlayScreen(
                 val live = overlay.request as? TvPlaybackRequest.Live
                 if (live != null) onReplaceTop(TvOverlay.Playing(live.zappedBy(direction)))
             },
+            onPlayLive = { queue, index ->
+                onReplaceTop(TvOverlay.Playing(TvPlaybackRequest.Live(queue[index], queue, index)))
+            },
             // The same replace, for the same reason: six episodes into an evening, back
             // belongs to the series, not to episode five. It also keeps `popRestoringCursor`
             // honest — the top of the stack is always the episode actually playing, so the

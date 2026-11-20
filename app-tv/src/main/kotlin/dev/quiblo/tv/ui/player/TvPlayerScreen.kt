@@ -83,6 +83,7 @@ import dev.quiblo.core.media.PlaybackError
 import dev.quiblo.core.media.PlaybackState
 import dev.quiblo.core.media.PlaybackStatus
 import dev.quiblo.core.model.AspectRatioMode
+import dev.quiblo.core.model.Channel
 import dev.quiblo.core.model.PlayerSettings
 import dev.quiblo.core.model.videoScale
 import dev.quiblo.designsystem.AmbientColours
@@ -140,6 +141,8 @@ fun TvPlayerScreen(
     request: TvPlaybackRequest,
     onBack: () -> Unit,
     onZap: (Int) -> Unit,
+    /** Plays a channel from a list chosen in the channel browser; the list becomes the zap queue. */
+    onPlayLive: (List<Channel>, Int) -> Unit,
     /**
      * Move [Int] episodes along this series, which the caller does by replacing this screen.
      *
@@ -177,6 +180,7 @@ fun TvPlayerScreen(
 
     // The live channel list over the left of the picture (Ludeen). Left opens it on a channel.
     var channelListOpen by remember { mutableStateOf(false) }
+    var channelListAtCategories by remember { mutableStateOf(false) }
 
     // The badge for a seek or a resume made with the controls hidden. A new value per press, so
     // the timeout below restarts on every one of a run of taps.
@@ -249,11 +253,13 @@ fun TvPlayerScreen(
         controlsVisible = controlsVisible,
         isOfferingNextEpisode = isOfferingNextEpisode,
         channelListOpen = channelListOpen,
+        channelListAtCategories = channelListAtCategories,
     )
 
     fun applyPlayerBack(action: TvPlayerBackAction) {
         when (action) {
             TvPlayerBackAction.CloseChannelList -> channelListOpen = false
+            TvPlayerBackAction.ChannelListToChannels -> channelListAtCategories = false
             TvPlayerBackAction.CloseTrackMenu -> trackMenuAt = null
             TvPlayerBackAction.HideControls -> hideControls()
             TvPlayerBackAction.DismissNextEpisode -> nextEpisodeDismissed = true
@@ -478,6 +484,7 @@ fun TvPlayerScreen(
                         openTracks = { if (!trackMenu.isEmpty) trackMenuAt = TrackMenuKind.SUBTITLES },
                         openChannelList = {
                             hideControls()
+                            channelListAtCategories = false
                             channelListOpen = true
                         },
                     ),
@@ -578,13 +585,16 @@ fun TvPlayerScreen(
         val live = request as? TvPlaybackRequest.Live
         if (channelListOpen && live != null && !hasFailed) {
             TvChannelListPanel(
-                channels = live.queue,
-                currentIndex = live.index,
-                onSelect = { index ->
+                startQueue = live.queue,
+                startIndex = live.index,
+                playingId = live.channel.id,
+                showCategories = channelListAtCategories,
+                onShowCategories = { channelListAtCategories = it },
+                onPlay = { queue, index ->
                     channelListOpen = false
-                    // Zapping by the distance replaces the step the way Up and Down do, so Back
-                    // still leaves to where the viewer started watching.
-                    if (index != live.index) onZap(index - live.index)
+                    // Replaces the step the way Up and Down do, so Back still leaves to where the
+                    // viewer started watching. The chosen list becomes what Up and Down zap through.
+                    if (queue[index].id != live.channel.id) onPlayLive(queue, index)
                 },
                 onDismiss = { channelListOpen = false },
             )

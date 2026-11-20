@@ -105,4 +105,20 @@ class TvPlayerBackKeysTest {
         assertEquals(TvPlayerBackAction.CloseChannelList, action)
         assertTrue(tvPlayerBackConsumesKey(action))
     }
+
+    @Test
+    fun `back from the list's categories steps down to its channels, not out`() {
+        val action = tvPlayerBackAction(
+            TvPlayerBackState(
+                trackMenuOpen = false,
+                controlsVisible = false,
+                isOfferingNextEpisode = false,
+                channelListOpen = true,
+                channelListAtCategories = true,
+            ),
+        )
+
+        assertEquals(TvPlayerBackAction.ChannelListToChannels, action)
+        assertTrue(tvPlayerBackConsumesKey(action))
+    }
 }
