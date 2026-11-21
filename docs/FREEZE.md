@@ -34,7 +34,7 @@ These are non-goals. Rejecting them is a decision, not an oversight.
 | UI | **Jetpack Compose** (Material 3) |
 | Player | **AndroidX Media3 / ExoPlayer** |
 | Platform (v1) | **Android phones**, portrait-first, tablet-tolerant |
-| minSdk | **30** (Android 11) |
+| minSdk | **30** (Android 11) for the phone app; **28** (Android 9) for the Ludeen TV app |
 | Sources | **M3U/M3U8** (remote URL + local file) and **Xtream Codes API** |
 | EPG | **Xtream API only.** M3U playlists have no guide in v1. |
 | Formats | **HLS, DASH, raw MPEG-TS, progressive MP4/MKV.** No DRM. *(DASH added by Amendment 2.)* |

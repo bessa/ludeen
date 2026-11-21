@@ -23,11 +23,13 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -217,11 +219,31 @@ fun TvSettingsScreen(
     // Export goes straight to Downloads — no picker, which on a television is often missing or
     // awkward to drive with a remote. Import still uses the picker so any file can be chosen.
     var exportedName by remember { mutableStateOf<String?>(null) }
+
+    // Android 9 (Ludeen): MediaStore's Downloads collection arrived in 10, and writing the folder
+    // directly would need a storage permission. The system's save dialog needs neither.
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(BACKUP_MIME_TYPE),
+    ) { uri: Uri? ->
+        if (uri == null) {
+            viewModel.dismiss()
+        } else {
+            viewModel.export { contents ->
+                checkNotNull(context.contentResolver.openOutputStream(uri)) { "No stream for $uri" }
+                    .use { it.write(contents.toByteArray()) }
+            }
+        }
+    }
     val exportToDownloads: () -> Unit = {
         val name = backupFileName()
-        viewModel.export { contents ->
-            writeToDownloads(context, name, contents)
-            exportedName = name
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            viewModel.export { contents ->
+                writeToDownloads(context, name, contents)
+                exportedName = name
+            }
+        } else {
+            exportedName = null
+            exportLauncher.launch(name)
         }
     }
 
@@ -1886,9 +1908,11 @@ private fun backupFileName(): String =
 /**
  * Writes [contents] to the shared Downloads folder through MediaStore.
  *
- * Needs no storage permission on Android 10 and later, and this app's minimum is 11. Throws on
- * failure so the ViewModel reports it as a failed export rather than a silent success.
+ * Needs no storage permission on Android 10 and later; Android 9 goes through the save dialog
+ * instead. Throws on failure so the ViewModel reports it as a failed export rather than a silent
+ * success.
  */
+@RequiresApi(Build.VERSION_CODES.Q)
 private fun writeToDownloads(context: Context, name: String, contents: String) {
     val resolver = context.contentResolver
     val values = ContentValues().apply {

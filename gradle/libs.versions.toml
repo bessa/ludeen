@@ -5,7 +5,8 @@ kotlin = "2.4.21"
 ksp = "2.3.13"
 compileSdk = "37"
 targetSdk = "37"
-minSdk = "30"
+# Android 9 (Ludeen): the TV app installs on API 28. The phone app keeps 30, set in app/build.gradle.kts.
+minSdk = "28"
 
 # AndroidX / Compose
 composeBom = "2026.09.00"

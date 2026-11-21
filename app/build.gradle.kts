@@ -54,6 +54,8 @@ android {
 
     defaultConfig {
         applicationId = "dev.quiblo.player"
+        // The shared minimum dropped to 28 for the TV app (Ludeen); the phone app stays where it was.
+        minSdk = 30
         versionCode = 60
         versionName = "0.34.0"
     }
