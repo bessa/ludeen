@@ -11,11 +11,15 @@
 #   1. Brings this checkout up to date with origin/ludeen (fast-forward only, never discards work).
 #   2. Builds the signed release APK and runs the TV and core tests.
 #   3. Names it ludeen-tv-v<versionName>.apk, writes its .sha256 beside it.
-#   4. Creates the release v<versionName> on GitHub and uploads both files.
+#   4. Builds it again for Android 9 (-Pludeen.android9=true, minSdk 28) as
+#      ludeen-tv-v<versionName>_android9.apk, with its own .sha256.
+#   5. Creates the release v<versionName> on GitHub and uploads all four files.
 #
 # The app's own update check reads the newest release of bessa/ludeen and installs the
-# ludeen-tv-*.apk it finds there — only after the .sha256 matches. A release without the
-# checksum is refused by the app, which is why this script always uploads both.
+# ludeen-tv-*.apk it finds there — the _android9 one on an Android 9 build, the plain one
+# otherwise — only after the .sha256 matches. A release without the checksum is refused by the
+# app, which is why this script always uploads both. The plain APK goes up first: builds before
+# 0.43 take the first ludeen-tv-*.apk they see.
 #
 # Before running: raise versionCode and versionName in app-tv/build.gradle.kts and push that.
 # A release whose tag already exists is refused rather than overwritten.
@@ -50,6 +54,7 @@ echo "   at $(git log --oneline -1)"
 VERSION="$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' app-tv/build.gradle.kts | head -1)"
 TAG="v$VERSION"
 NAME="ludeen-tv-$TAG.apk"
+NAME9="ludeen-tv-${TAG}_android9.apk"
 [[ -n "$VERSION" ]] || { echo "No versionName in app-tv/build.gradle.kts" >&2; exit 1; }
 
 if curl -sf -o /dev/null "${AUTH[@]}" "https://api.github.com/repos/$REPO/releases/tags/$TAG"; then
@@ -68,14 +73,20 @@ cp "$OUT/app-tv-release.apk" "$OUT/$NAME"
 (cd "$OUT" && sha256sum "$NAME" > "$NAME.sha256")
 echo "   $OUT/$NAME ($(du -h "$OUT/$NAME" | cut -f1))"
 
+echo "== Building $VERSION for Android 9"
+./gradlew --console=plain -q -Pludeen.android9=true :app-tv:assembleRelease
+cp "$OUT/app-tv-release.apk" "$OUT/$NAME9"
+(cd "$OUT" && sha256sum "$NAME9" > "$NAME9.sha256")
+echo "   $OUT/$NAME9 ($(du -h "$OUT/$NAME9" | cut -f1))"
+
 echo "== Publishing $TAG on $REPO"
-NOTES="Ludeen $VERSION for Android TV. Install ludeen-tv-$TAG.apk, or update from Settings → Updates in the app."
+NOTES="Ludeen $VERSION for Android TV. Install ludeen-tv-$TAG.apk (Android 11 and later) or ludeen-tv-${TAG}_android9.apk (Android 9 and 10), or update from Settings → Updates in the app."
 RELEASE_JSON="$(python3 -c 'import json,sys; print(json.dumps({"tag_name":sys.argv[1],"target_commitish":sys.argv[2],"name":"Ludeen "+sys.argv[3],"body":sys.argv[4]}))' \
     "$TAG" "$(git rev-parse HEAD)" "$VERSION" "$NOTES")"
 UPLOAD_URL="$(curl -sf "${AUTH[@]}" -X POST "https://api.github.com/repos/$REPO/releases" -d "$RELEASE_JSON" \
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["upload_url"].split("{")[0])')"
 
-for FILE in "$NAME" "$NAME.sha256"; do
+for FILE in "$NAME" "$NAME.sha256" "$NAME9" "$NAME9.sha256"; do
     TYPE="application/vnd.android.package-archive"
     [[ "$FILE" == *.sha256 ]] && TYPE="text/plain"
     curl -sf "${AUTH[@]}" -H "Content-Type: $TYPE" --data-binary @"$OUT/$FILE" \

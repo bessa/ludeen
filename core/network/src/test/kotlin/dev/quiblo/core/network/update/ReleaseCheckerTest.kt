@@ -169,6 +169,32 @@ class ReleaseCheckerTest {
         )
     }
 
+    @Test
+    fun `the plain and the Android 9 build each find their own APK in one release`() = runTest {
+        val both = """
+            {
+              "tag_name": "v0.43.0-Bash",
+              "body": "Ludeen.",
+              "assets": [
+                { "name": "ludeen-tv-v0.43.0-Bash_android9.apk", "browser_download_url": "https://example.invalid/9.apk" },
+                { "name": "ludeen-tv-v0.43.0-Bash_android9.apk.sha256", "browser_download_url": "https://example.invalid/9.sha256" },
+                { "name": "ludeen-tv-v0.43.0-Bash.apk", "browser_download_url": "https://example.invalid/a.apk" },
+                { "name": "ludeen-tv-v0.43.0-Bash.apk.sha256", "browser_download_url": "https://example.invalid/a.sha256" }
+              ]
+            }
+        """.trimIndent()
+        val prefix = ReleaseChecker.LUDEEN_TV_ASSET_PREFIX
+
+        val plain = checkerReturning(both).check("0.42.0-Bash", prefix) as UpdateCheck.Available
+        assertEquals("https://example.invalid/a.apk", plain.apkUrl)
+        assertEquals("https://example.invalid/a.sha256", plain.checksumUrl)
+
+        val nine = checkerReturning(both).check("0.42.0-Bash", prefix, ReleaseChecker.ANDROID9_VARIANT)
+            as UpdateCheck.Available
+        assertEquals("https://example.invalid/9.apk", nine.apkUrl)
+        assertEquals("https://example.invalid/9.sha256", nine.checksumUrl)
+    }
+
     private fun checkerReturning(body: String): ReleaseChecker {
         val engine = MockEngine {
             respond(

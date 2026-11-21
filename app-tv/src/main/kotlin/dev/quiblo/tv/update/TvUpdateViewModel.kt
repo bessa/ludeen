@@ -74,6 +74,8 @@ sealed interface TvUpdateState {
  *   directory the manifest's file-provider paths share, and a second opinion about which
  *   directory that is would be a `content://` URI the installer cannot open.
  */
+// Every one a named dependency from Koin (see TvUpdateModule); grouping them would only hide which.
+@Suppress("LongParameterList")
 class TvUpdateViewModel(
     private val checker: ReleaseChecker,
     private val downloader: ReleaseDownloader,
@@ -82,6 +84,8 @@ class TvUpdateViewModel(
     private val updatesDirectory: File,
     /** Which release asset is this app's APK. Quiblo's by default; the Ludeen build passes its own. */
     private val assetPrefix: String = ReleaseChecker.TV_ASSET_PREFIX,
+    /** Which build of it: "" for the plain one, `android9` for the Android 9 one (Ludeen). */
+    private val assetVariant: String = "",
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<TvUpdateState>(TvUpdateState.Idle)
@@ -125,7 +129,7 @@ class TvUpdateViewModel(
             if (!settings.checkUpdatesOnLaunch.first()) return@launch
             if (_state.value !is TvUpdateState.Idle) return@launch
 
-            val outcome = checker.check(currentVersion, assetPrefix)
+            val outcome = checker.check(currentVersion, assetPrefix, assetVariant)
             if (outcome is UpdateCheck.Available) {
                 _state.value = TvUpdateState.Available(outcome.version, outcome)
                 _launchPrompt.value = true
@@ -153,7 +157,7 @@ class TvUpdateViewModel(
 
         _state.value = TvUpdateState.Checking
         viewModelScope.launch {
-            _state.value = when (val outcome = checker.check(currentVersion, assetPrefix)) {
+            _state.value = when (val outcome = checker.check(currentVersion, assetPrefix, assetVariant)) {
                 is UpdateCheck.UpToDate -> TvUpdateState.UpToDate
                 is UpdateCheck.Available -> TvUpdateState.Available(outcome.version, outcome)
                 is UpdateCheck.Failed -> TvUpdateState.Failed(outcome.reason.asFailure())

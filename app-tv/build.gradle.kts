@@ -43,6 +43,15 @@ val hasReleaseSigning: Boolean = listOf(
     releaseKeyPassword,
 ).all { !it.isNullOrBlank() }
 
+/*
+ * Ludeen publishes two APKs per release: the plain one (Android 11 and later) and
+ * `_android9`, built with `-Pludeen.android9=true`, which installs on Android 9. Same code and
+ * same application id; only the minimum and the update channel differ.
+ */
+val isAndroid9Build = providers.gradleProperty("ludeen.android9").orNull == "true"
+val androidNineSdk = 28
+val androidElevenSdk = 30
+
 android {
     namespace = "dev.quiblo.tv"
 
@@ -52,6 +61,8 @@ android {
         applicationId = "dev.quiblo.tv.bash"
         versionCode = 75
         versionName = "0.42.0-Bash"
+        minSdk = if (isAndroid9Build) androidNineSdk else androidElevenSdk
+        buildConfigField("String", "LUDEEN_APK_VARIANT", if (isAndroid9Build) "\"android9\"" else "\"\"")
     }
 
     buildFeatures {

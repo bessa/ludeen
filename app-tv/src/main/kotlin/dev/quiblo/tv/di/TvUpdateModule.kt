@@ -53,6 +53,8 @@ val tvUpdateModule: Module = module {
             // with Quiblo's key could not be installed over this one anyway.
             checker = get(named(LUDEEN_RELEASES)),
             assetPrefix = ReleaseChecker.LUDEEN_TV_ASSET_PREFIX,
+            // The Android 9 build updates to the Android 9 APK, and only to it.
+            assetVariant = BuildConfig.LUDEEN_APK_VARIANT,
             downloader = get(),
             settings = get(),
             currentVersion = BuildConfig.VERSION_NAME,

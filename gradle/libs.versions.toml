@@ -5,7 +5,8 @@ kotlin = "2.4.21"
 ksp = "2.3.13"
 compileSdk = "37"
 targetSdk = "37"
-# Android 9 (Ludeen): the TV app installs on API 28. The phone app keeps 30, set in app/build.gradle.kts.
+# Android 9 (Ludeen): the libraries allow API 28 so the _android9 TV build can use them. Each app
+# sets its own minimum: the phone app and the plain TV build 30, the _android9 TV build 28.
 minSdk = "28"
 
 # AndroidX / Compose

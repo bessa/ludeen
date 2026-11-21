@@ -68,6 +68,10 @@ sealed interface UpdateCheck {
  *
  * @param assetPrefix `quiblo-tv-` on a television, `quiblo-` on a phone. The two APKs sit in one
  *   release, and offering a television the handset build is offering the wrong app.
+ *
+ * `assetVariant` (Ludeen) picks between builds of one app published side by side: the
+ * `_android9` APK is `ludeen-tv-vX.Y.Z_android9.apk`, and an Android 9 build must be offered that
+ * one and every other build must not be.
  */
 class ReleaseChecker(
     private val client: HttpClient,
@@ -76,7 +80,7 @@ class ReleaseChecker(
 ) {
 
     @Suppress("TooGenericExceptionCaught", "ReturnCount")
-    suspend fun check(currentVersion: String, assetPrefix: String): UpdateCheck {
+    suspend fun check(currentVersion: String, assetPrefix: String, assetVariant: String = ""): UpdateCheck {
         if (!connectivity.isOnline()) return UpdateCheck.Failed(UpdateCheck.Failed.Reason.OFFLINE)
 
         val body = try {
@@ -105,8 +109,9 @@ class ReleaseChecker(
 
         if (latest <= running) return UpdateCheck.UpToDate
 
-        val apk = release.assets.firstOrNull { it.name.startsWith(assetPrefix) && it.name.endsWith(APK) }
-            ?: return UpdateCheck.Failed(UpdateCheck.Failed.Reason.NO_ASSET)
+        val apk = release.assets.firstOrNull {
+            it.name.startsWith(assetPrefix) && it.name.endsWith(APK) && variantOf(it.name) == assetVariant
+        } ?: return UpdateCheck.Failed(UpdateCheck.Failed.Reason.NO_ASSET)
 
         return UpdateCheck.Available(
             version = release.tagName,
@@ -136,6 +141,12 @@ class ReleaseChecker(
     )
 
     companion object {
+        /** The Ludeen television build that installs on Android 9; see [check]. */
+        const val ANDROID9_VARIANT = "android9"
+
+        /** `x_android9.apk` is "android9"; a name without an underscore is the plain build, "". */
+        private fun variantOf(name: String): String = name.removeSuffix(APK).substringAfterLast('_', "")
+
         const val QUIBLO_REPOSITORY = "quiblo-iptv/quiblo-app"
 
         /** The Ludeen fork's releases, which the television build checks instead of Quiblo's. */
