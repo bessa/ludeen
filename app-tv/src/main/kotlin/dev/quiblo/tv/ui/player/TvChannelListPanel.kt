@@ -94,7 +94,8 @@ private sealed interface Browsing {
  * The channel browser over the left of a live channel (Ludeen).
  *
  * Two levels in one panel. **Channels**: Left from the picture opens it on the playing channel;
- * Up and Down walk it, OK plays, Right closes it. **Categories**, its parent: Left from the
+ * Up and Down walk it, OK plays — and the list stays open, so channels can be tried one after
+ * another — Right closes it. **Categories**, its parent: Left from the
  * channels; Up and Down walk them, Right or OK opens the focused one's channels — or, if focus
  * never moved, simply returns to the list it came from. Back steps up the same way (the player
  * owns Back; see [TvPlayerBackState]).

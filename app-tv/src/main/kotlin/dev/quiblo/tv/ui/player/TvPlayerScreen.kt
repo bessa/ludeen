@@ -336,9 +336,6 @@ fun TvPlayerScreen(
     // left to wait for.
     val hasFailed = state.status == PlaybackStatus.ERROR
 
-    // The error screen replaces the list; a list left flagged open would cost a Back press.
-    LaunchedEffect(hasFailed) { if (hasFailed) channelListOpen = false }
-
     /*
      * Immersive mode.
      *
@@ -535,6 +532,9 @@ fun TvPlayerScreen(
             hasFailed = hasFailed,
             controlsVisible = controlsVisible,
             controlsMayClaimFocus = controlsClaimFocus,
+            // Zapping from the list onto a dead channel leaves the remote in the list, so the
+            // next channel is one press away rather than behind Try again.
+            failureMayClaimFocus = !channelListOpen,
             trackMenuAt = trackMenuAt,
             zapNotice = zapNotice,
             trackMenu = trackMenu,
@@ -583,15 +583,16 @@ fun TvPlayerScreen(
         )
 
         val live = request as? TvPlaybackRequest.Live
-        if (channelListOpen && live != null && !hasFailed) {
+        // Drawn over the error too: a dead channel is one more to zap past, not a reason to lose the list.
+        if (channelListOpen && live != null) {
             TvChannelListPanel(
                 startQueue = live.queue,
                 startIndex = live.index,
                 playingId = live.channel.id,
                 showCategories = channelListAtCategories,
                 onShowCategories = { channelListAtCategories = it },
+                // The list stays open while channels are chosen from it; Right or Back closes it.
                 onPlay = { queue, index ->
-                    channelListOpen = false
                     // Replaces the step the way Up and Down do, so Back still leaves to where the
                     // viewer started watching. The chosen list becomes what Up and Down zap through.
                     if (queue[index].id != live.channel.id) onPlayLive(queue, index)
@@ -628,6 +629,7 @@ private fun PlayerOverlays(
     hasFailed: Boolean,
     controlsVisible: Boolean,
     controlsMayClaimFocus: Boolean,
+    failureMayClaimFocus: Boolean,
     trackMenuAt: TrackMenuKind?,
     zapNotice: String?,
     trackMenu: TrackMenu,
@@ -649,7 +651,13 @@ private fun PlayerOverlays(
     }
 
     if (hasFailed) {
-        PlaybackFailure(error = state.error, diagnosis = diagnosis, onRetry = onRetry, onBack = onBack)
+        PlaybackFailure(
+            error = state.error,
+            diagnosis = diagnosis,
+            claimFocus = failureMayClaimFocus,
+            onRetry = onRetry,
+            onBack = onBack,
+        )
     }
 
     zapNotice?.let { ZapNotice(name = it) }
@@ -1179,11 +1187,13 @@ private fun Buffering(retryAttempt: Int) {
 private fun PlaybackFailure(
     error: PlaybackError?,
     diagnosis: DiagnosisState,
+    claimFocus: Boolean,
     onRetry: () -> Unit,
     onBack: () -> Unit,
 ) {
     val retryFocus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { retryFocus.requestFocus() } }
+    // Also when the channel list closes over it, so the remote comes back to Try again.
+    LaunchedEffect(claimFocus) { if (claimFocus) runCatching { retryFocus.requestFocus() } }
     // Whose side it is on, once the evidence is in (`FEAT-035`). Until then, the engine's own
     // message and "checking why" — the screen never waits on the account check to appear.
     val ready = (diagnosis as? DiagnosisState.Ready)?.diagnosis
