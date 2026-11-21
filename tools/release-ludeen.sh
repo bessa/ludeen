@@ -68,14 +68,18 @@ echo "== Building and testing $VERSION"
     :core:model:test :core:network:testDebugUnitTest :core:database:testDebugUnitTest \
     :core:data:testDebugUnitTest :feature:browse:testDebugUnitTest
 
-OUT="app-tv/build/outputs/apk/release"
-cp "$OUT/app-tv-release.apk" "$OUT/$NAME"
+# The finished files are kept outside Gradle's output folder: the second (Android 9) build
+# empties that folder, and took the first APK with it.
+APK_OUT="app-tv/build/outputs/apk/release"
+OUT="app-tv/build/ludeen-release"
+rm -rf "$OUT" && mkdir -p "$OUT"
+cp "$APK_OUT/app-tv-release.apk" "$OUT/$NAME"
 (cd "$OUT" && sha256sum "$NAME" > "$NAME.sha256")
 echo "   $OUT/$NAME ($(du -h "$OUT/$NAME" | cut -f1))"
 
 echo "== Building $VERSION for Android 9"
 ./gradlew --console=plain -q -Pludeen.android9=true :app-tv:assembleRelease
-cp "$OUT/app-tv-release.apk" "$OUT/$NAME9"
+cp "$APK_OUT/app-tv-release.apk" "$OUT/$NAME9"
 (cd "$OUT" && sha256sum "$NAME9" > "$NAME9.sha256")
 echo "   $OUT/$NAME9 ($(du -h "$OUT/$NAME9" | cut -f1))"
 
@@ -89,6 +93,7 @@ UPLOAD_URL="$(curl -sf "${AUTH[@]}" -X POST "https://api.github.com/repos/$REPO/
 for FILE in "$NAME" "$NAME.sha256" "$NAME9" "$NAME9.sha256"; do
     TYPE="application/vnd.android.package-archive"
     [[ "$FILE" == *.sha256 ]] && TYPE="text/plain"
+    [[ -s "$OUT/$FILE" ]] || { echo "Missing $OUT/$FILE" >&2; exit 1; }
     curl -sf "${AUTH[@]}" -H "Content-Type: $TYPE" --data-binary @"$OUT/$FILE" \
         "$UPLOAD_URL?name=$FILE" -o /dev/null
     echo "   uploaded $FILE"
