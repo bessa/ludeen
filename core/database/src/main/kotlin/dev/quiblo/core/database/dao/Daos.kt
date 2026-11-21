@@ -914,9 +914,14 @@ interface ChannelDao {
      * looking at half a channel list. Inserts are chunked because SQLite binds a limited
      * number of variables per statement and a 20,000-entry playlist exceeds it
      * comfortably (AC-PL-05).
+     *
+     * A sequence rather than a list (Ludeen): the rows are built a chunk at a time as they are
+     * written, so a catalogue of a hundred thousand titles is never held twice over — once as
+     * channels and again as rows. On a 1 GB television that second copy was the difference
+     * between loading and being killed.
      */
     @Transaction
-    suspend fun replaceForSource(sourceId: Long, channels: List<ChannelEntity>) {
+    suspend fun replaceForSource(sourceId: Long, channels: Sequence<ChannelEntity>) {
         deleteForSource(sourceId)
         channels.chunked(INSERT_CHUNK_SIZE).forEach { insertAll(it) }
     }
@@ -929,7 +934,7 @@ interface ChannelDao {
      * the other kinds exactly as they were. One transaction, as [replaceForSource] is.
      */
     @Transaction
-    suspend fun replaceForSourceKind(sourceId: Long, kind: String, channels: List<ChannelEntity>) {
+    suspend fun replaceForSourceKind(sourceId: Long, kind: String, channels: Sequence<ChannelEntity>) {
         deleteForSourceKind(sourceId, kind)
         channels.chunked(INSERT_CHUNK_SIZE).forEach { insertAll(it) }
     }
@@ -962,7 +967,7 @@ interface ChannelDao {
      */
     @Transaction
     @Suppress("SpreadOperator")
-    suspend fun mergeForSource(sourceId: Long, channels: List<ChannelEntity>, now: Long) {
+    suspend fun mergeForSource(sourceId: Long, channels: Sequence<ChannelEntity>, now: Long) {
         val held = identitiesForSource(sourceId).associateBy { it.stableKey }
         val arriving = channels.map { it.stableKey }.toSet()
 
@@ -970,6 +975,8 @@ interface ChannelDao {
             .chunked(INSERT_CHUNK_SIZE)
             .forEach { deleteByStableKeys(sourceId, it) }
 
+        // Walked twice (the keys above, the rows here), so [channels] must be re-iterable: built
+        // lazily from a list, a chunk at a time, for the reason [replaceForSource] takes a sequence.
         channels.map { channel ->
             val existing = held[channel.stableKey]
             channel.copy(

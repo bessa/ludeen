@@ -117,6 +117,7 @@ import dev.quiblo.feature.settings.TmdbCheck
 import dev.quiblo.tv.BuildConfig
 import dev.quiblo.tv.R
 import dev.quiblo.tv.locale.TvLanguage
+import dev.quiblo.tv.ui.TvTab
 import dev.quiblo.tv.ui.common.TvChip
 import dev.quiblo.tv.ui.common.TvTextField
 import dev.quiblo.tv.ui.common.tryRequestFocus
@@ -701,7 +702,8 @@ private fun SectionTabs(selected: TvSettingsSection, onSelect: (TvSettingsSectio
 @Composable
 private fun TabVisibilityRow(hidden: Set<AppTab>, onToggle: (AppTab) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        AppTab.entries.forEach { tab ->
+        // No switch for a tab this build never draws (the _android9 build has no Favourites tab).
+        AppTab.entries.filterNot { it == AppTab.FAVOURITES && TvTab.isFavouritesTabDropped }.forEach { tab ->
             TvChip(
                 label = stringResource(tab.labelRes()),
                 isSelected = tab !in hidden,

@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -981,9 +980,10 @@ private fun TvTopBar(
                     spot = TvBarSpot.TABS
                     onSelect(tab.ordinal)
                 },
+                // What is left after the mark and the icons, so those are always drawn (Ludeen);
+                // the tabs scroll inside it on a narrow screen.
+                modifier = Modifier.weight(1f),
             )
-
-            Spacer(modifier = Modifier.weight(1f))
 
             /*
              * The gear and the face, as one group.

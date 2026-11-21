@@ -70,7 +70,7 @@ class CatalogueMergeTest {
     @Test
     fun `a title the provider still carries keeps its id`() = runTest {
         seed()
-        db.channelDao().mergeForSource(SOURCE_ID, listOf(arriving("key-1", name = "Dune (2021) 4K")), NOW)
+        db.channelDao().mergeForSource(SOURCE_ID, sequenceOf(arriving("key-1", name = "Dune (2021) 4K")), NOW)
 
         val row = db.channelDao().findByStableKey(SOURCE_ID, "key-1")
 
@@ -82,7 +82,7 @@ class CatalogueMergeTest {
     @Test
     fun `and the date it first appeared, when the provider supplies none`() = runTest {
         seed()
-        db.channelDao().mergeForSource(SOURCE_ID, listOf(arriving("key-1", addedAt = null)), NOW)
+        db.channelDao().mergeForSource(SOURCE_ID, sequenceOf(arriving("key-1", addedAt = null)), NOW)
 
         assertEquals(FIRST_SEEN, db.channelDao().findByStableKey(SOURCE_ID, "key-1")?.addedAtEpochMillis)
     }
@@ -99,7 +99,7 @@ class CatalogueMergeTest {
         seed()
         db.channelDao().mergeForSource(
             SOURCE_ID,
-            listOf(arriving("key-1", addedAt = null), arriving("key-new", addedAt = null)),
+            sequenceOf(arriving("key-1", addedAt = null), arriving("key-new", addedAt = null)),
             NOW,
         )
 
@@ -110,7 +110,7 @@ class CatalogueMergeTest {
     @Test
     fun `the provider's own date wins over both`() = runTest {
         seed()
-        db.channelDao().mergeForSource(SOURCE_ID, listOf(arriving("key-1", addedAt = PROVIDER_DATE)), NOW)
+        db.channelDao().mergeForSource(SOURCE_ID, sequenceOf(arriving("key-1", addedAt = PROVIDER_DATE)), NOW)
 
         assertEquals(PROVIDER_DATE, db.channelDao().findByStableKey(SOURCE_ID, "key-1")?.addedAtEpochMillis)
     }
@@ -118,7 +118,7 @@ class CatalogueMergeTest {
     @Test
     fun `a title the provider has dropped is removed`() = runTest {
         seed()
-        db.channelDao().mergeForSource(SOURCE_ID, listOf(arriving("key-1")), NOW)
+        db.channelDao().mergeForSource(SOURCE_ID, sequenceOf(arriving("key-1")), NOW)
 
         // A catalogue that only ever grows is not a catalogue: a viewer would keep meeting titles
         // their provider stopped carrying, and pressing one plays nothing.
@@ -157,7 +157,7 @@ class CatalogueMergeTest {
             ),
         )
 
-        db.channelDao().mergeForSource(SOURCE_ID, listOf(arriving("key-1")), NOW)
+        db.channelDao().mergeForSource(SOURCE_ID, sequenceOf(arriving("key-1")), NOW)
 
         assertEquals(true, db.favoriteDao().isFavorite(PROFILE_ID, SOURCE_ID, "key-1"))
         assertEquals(90_000L, db.resumePositionDao().positionFor(PROFILE_ID, "key-1"))
@@ -175,7 +175,7 @@ class CatalogueMergeTest {
             ),
         )
 
-        db.channelDao().mergeForSource(SOURCE_ID, (1..3).map { arriving("key-$it", addedAt = null) }, NOW)
+        db.channelDao().mergeForSource(SOURCE_ID, (1..3).asSequence().map { arriving("key-$it", addedAt = null) }, NOW)
 
         assertEquals(3, db.channelDao().countForSource(SOURCE_ID))
     }

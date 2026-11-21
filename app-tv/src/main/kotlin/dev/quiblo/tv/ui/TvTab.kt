@@ -20,6 +20,8 @@ package dev.quiblo.tv.ui
 
 import androidx.annotation.StringRes
 import dev.quiblo.core.model.AppTab
+import dev.quiblo.core.network.update.ReleaseChecker
+import dev.quiblo.tv.BuildConfig
 import dev.quiblo.tv.R
 
 /**
@@ -68,7 +70,19 @@ internal enum class TvTab(
     ;
 
     companion object {
+        /**
+         * Whether this build leaves Favourites out of the bar altogether (Ludeen).
+         *
+         * The `_android9` build is for small, old screens — a 720p projector could not fit seven tabs
+         * and the icons — so it drops the one tab its owner did not need. Favourites themselves
+         * are untouched; only the tab is gone.
+         */
+        val isFavouritesTabDropped: Boolean
+            get() = BuildConfig.LUDEEN_APK_VARIANT == ReleaseChecker.ANDROID9_VARIANT
+
         /** The bar as this viewer has arranged it, in the order the enum declares. */
-        fun visible(hidden: Set<AppTab>): List<TvTab> = entries.filter { it.tab == null || it.tab !in hidden }
+        fun visible(hidden: Set<AppTab>, dropFavourites: Boolean = isFavouritesTabDropped): List<TvTab> =
+            entries.filter { it.tab == null || it.tab !in hidden }
+                .filterNot { dropFavourites && it == FAVOURITES }
     }
 }

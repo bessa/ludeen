@@ -41,12 +41,18 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
+    <!--
+      largeHeap (Ludeen): a large provider's catalogue is a hundred thousand titles in memory while
+      it is stored. On a 1 GB television the default allowance (often 96-128 MB) ran out partway
+      and the app was killed; this asks for the device's larger limit. Harmless on bigger ones.
+    -->
     <application
         android:name=".QuibloTvApplication"
         android:allowBackup="false"
         android:banner="@drawable/tv_banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/tv_app_name"
+        android:largeHeap="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.QuibloTv">

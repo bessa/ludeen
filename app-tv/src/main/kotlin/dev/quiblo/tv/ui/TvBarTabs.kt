@@ -22,15 +22,18 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,7 +90,29 @@ internal fun TvBarTabs(
     val density = LocalDensity.current
     var placed by remember { mutableStateOf(emptyMap<TvTab, PillBounds>()) }
 
-    Box(modifier = modifier, contentAlignment = Alignment.CenterStart) {
+    /*
+     * Scrolls when the tabs are wider than the room the bar leaves them (Ludeen).
+     *
+     * A 720p projector at a high density has far less width than a television, and seven tabs in
+     * a row that could not shrink pushed the settings gear and the profile off the right edge.
+     * The bar now gives the icons their room first and this what is left; the selected tab is
+     * kept in view as the remote walks along.
+     */
+    val scroll = rememberScrollState()
+    val selectedBounds = placed[TvTab.entries[selectedTab]]
+    LaunchedEffect(selectedBounds, scroll.viewportSize) {
+        val bounds = selectedBounds ?: return@LaunchedEffect
+        val viewport = scroll.viewportSize
+        if (viewport == 0) return@LaunchedEffect
+        val start = with(density) { (bounds.x - TAB_GAP).roundToPx() }.coerceAtLeast(0)
+        val end = with(density) { (bounds.x + bounds.width + TAB_GAP).roundToPx() }
+        when {
+            start < scroll.value -> scroll.animateScrollTo(start)
+            end > scroll.value + viewport -> scroll.animateScrollTo(end - viewport)
+        }
+    }
+
+    Box(modifier = modifier.horizontalScroll(scroll), contentAlignment = Alignment.CenterStart) {
         placed[TvTab.entries[selectedTab]]?.let { TravellingPill(it, isBarFocused) }
 
         Row(

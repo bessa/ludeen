@@ -49,6 +49,15 @@ class TvTabOrderTest {
     }
 
     @Test
+    fun `the Android 9 build leaves Favourites out of the bar and keeps the rest`() {
+        assertEquals(
+            listOf(TvTab.FOR_YOU, TvTab.LIVE, TvTab.RECENT, TvTab.MOVIES, TvTab.SERIES, TvTab.SEARCH),
+            TvTab.visible(hidden = emptySet(), dropFavourites = true),
+        )
+        assertEquals(TvTab.entries, TvTab.visible(hidden = emptySet(), dropFavourites = false))
+    }
+
+    @Test
     fun `home is first, because Back comes to rest there`() {
         assertEquals(0, TvTab.FOR_YOU.ordinal)
     }

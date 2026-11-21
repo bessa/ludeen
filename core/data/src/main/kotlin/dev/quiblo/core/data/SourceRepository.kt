@@ -132,15 +132,15 @@ class SourceRepository(
         return when (val result = mediaSource.load(SourceRequest(sourceId, source.url, onlyKind = kind))) {
             is SourceResult.Failure -> RefreshOutcome.Failure(result.error)
             is SourceResult.Success -> {
-                val entities = result.channels
-                    .filter { it.kind == kind }
-                    .mapIndexed { index, channel -> channel.toEntity(sortIndex = index) }
+                val ofKind = result.channels.filter { it.kind == kind }
+                // Built lazily, as they are written; see [ChannelDao.replaceForSource].
+                val entities = ofKind.asSequence().mapIndexed { index, channel -> channel.toEntity(sortIndex = index) }
                 channelDao.replaceForSourceKind(sourceId, kind.name, entities)
                 sourceDao.markRefreshed(sourceId, now())
                 result.allowedLiveFormats?.let { sourceDao.setAllowedLiveFormats(sourceId, it.joinToString(",")) }
                 RefreshOutcome.Success(
                     sourceId,
-                    result.report.copy(parsedEntries = entities.size),
+                    result.report.copy(parsedEntries = ofKind.size),
                 )
             }
         }
@@ -223,7 +223,9 @@ class SourceRepository(
             is SourceResult.Failure -> RefreshOutcome.Failure(result.error)
 
             is SourceResult.Success -> {
-                val entities = result.channels.mapIndexed { index, channel ->
+                // Lazily, so the rows are built as they are written rather than all held at once
+                // beside the channels they came from; see [ChannelDao.replaceForSource].
+                val entities = result.channels.asSequence().mapIndexed { index, channel ->
                     channel.toEntity(sortIndex = index)
                 }
                 if (merge) {
