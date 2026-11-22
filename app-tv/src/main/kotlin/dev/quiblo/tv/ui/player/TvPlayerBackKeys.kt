@@ -32,6 +32,10 @@ data class TvPlayerBackState(
     val channelListOpen: Boolean = false,
     /** That list is on its category level, the parent of the channels. */
     val channelListAtCategories: Boolean = false,
+    /** A live channel's error screen is up (Ludeen): Back clears it and stays, to zap on. */
+    val liveFailureShown: Boolean = false,
+    /** The playback info panel is open. */
+    val infoOpen: Boolean = false,
 )
 
 /** What a back press does inside the television player. */
@@ -42,6 +46,12 @@ sealed interface TvPlayerBackAction {
 
     /** From the list's categories back down to its channels. */
     data object ChannelListToChannels : TvPlayerBackAction
+
+    /** Clear a dead live channel's error screen; stay on the channel, black, to zap from (Ludeen). */
+    data object DismissLiveFailure : TvPlayerBackAction
+
+    /** Close the playback info panel (Ludeen). */
+    data object CloseInfo : TvPlayerBackAction
 
     /** Close the audio/subtitle panel; leave the controls as they are. */
     data object CloseTrackMenu : TvPlayerBackAction
@@ -67,7 +77,10 @@ sealed interface TvPlayerBackAction {
  *
  * Order is the stack the viewer sees:
  *
+ * - live channel list → step it down, then close it (Ludeen)
+ * - a dead live channel's error screen → clear it and stay, to zap on (Ludeen)
  * - track menu on top of controls → close the menu
+ * - playback info panel → close it (Ludeen)
  * - controls on screen → hide them (first back; second back exits)
  * - next-episode offer → dismiss it
  * - nothing on top → leave playback
@@ -75,7 +88,9 @@ sealed interface TvPlayerBackAction {
 fun tvPlayerBackAction(state: TvPlayerBackState): TvPlayerBackAction = when {
     state.channelListOpen && state.channelListAtCategories -> TvPlayerBackAction.ChannelListToChannels
     state.channelListOpen -> TvPlayerBackAction.CloseChannelList
+    state.liveFailureShown -> TvPlayerBackAction.DismissLiveFailure
     state.trackMenuOpen -> TvPlayerBackAction.CloseTrackMenu
+    state.infoOpen -> TvPlayerBackAction.CloseInfo
     state.controlsVisible -> TvPlayerBackAction.HideControls
     state.isOfferingNextEpisode -> TvPlayerBackAction.DismissNextEpisode
     else -> TvPlayerBackAction.Exit

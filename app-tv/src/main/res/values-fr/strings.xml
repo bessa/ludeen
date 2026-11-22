@@ -343,6 +343,8 @@ Créez-en une sur la page ci-dessous — c\'est plus rapide sur un téléphone q
     <string name="tv_series_resume">Reprendre à la saison %1$d, épisode %2$d</string>
     <string name="tv_player_live">DIRECT</string>
     <string name="tv_player_hint_zap">▲ pour changer de chaîne</string>
+    <string name="tv_player_dead_channel">Chaîne indisponible</string>
+    <string name="tv_player_dead_channel_hint">▲ ▼ changer de chaîne · ◀ liste des chaînes · OK réessayer</string>
     <string name="tv_player_audio">Audio</string>
     <string name="tv_player_subtitles">Sous-titres</string>
     <string name="tv_player_info">Infos de lecture</string>

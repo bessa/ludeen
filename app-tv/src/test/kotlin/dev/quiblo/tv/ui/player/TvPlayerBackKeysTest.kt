@@ -121,4 +121,49 @@ class TvPlayerBackKeysTest {
         assertEquals(TvPlayerBackAction.ChannelListToChannels, action)
         assertTrue(tvPlayerBackConsumesKey(action))
     }
+
+    @Test
+    fun `back on a dead live channel clears the error and stays, so the viewer can zap`() {
+        val action = tvPlayerBackAction(
+            TvPlayerBackState(
+                trackMenuOpen = false,
+                controlsVisible = false,
+                isOfferingNextEpisode = false,
+                liveFailureShown = true,
+            ),
+        )
+
+        assertEquals(TvPlayerBackAction.DismissLiveFailure, action)
+        assertTrue(tvPlayerBackConsumesKey(action))
+    }
+
+    @Test
+    fun `the channel list over a dead channel closes before the error is cleared`() {
+        val action = tvPlayerBackAction(
+            TvPlayerBackState(
+                trackMenuOpen = false,
+                controlsVisible = false,
+                isOfferingNextEpisode = false,
+                channelListOpen = true,
+                liveFailureShown = true,
+            ),
+        )
+
+        assertEquals(TvPlayerBackAction.CloseChannelList, action)
+    }
+
+    @Test
+    fun `back closes the info panel before it hides the controls`() {
+        val action = tvPlayerBackAction(
+            TvPlayerBackState(
+                trackMenuOpen = false,
+                controlsVisible = true,
+                isOfferingNextEpisode = false,
+                infoOpen = true,
+            ),
+        )
+
+        assertEquals(TvPlayerBackAction.CloseInfo, action)
+        assertTrue(tvPlayerBackConsumesKey(action))
+    }
 }

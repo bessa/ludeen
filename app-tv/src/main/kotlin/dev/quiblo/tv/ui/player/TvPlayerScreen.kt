@@ -21,6 +21,7 @@ package dev.quiblo.tv.ui.player
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.PixelCopy
 import android.view.SurfaceView
 import android.view.WindowManager
@@ -182,6 +183,14 @@ fun TvPlayerScreen(
     var channelListOpen by remember { mutableStateOf(false) }
     var channelListAtCategories by remember { mutableStateOf(false) }
 
+    // A dead live channel whose error screen Back has cleared (Ludeen): the picture stays black
+    // with a small notice, and the remote zaps on from there. A new channel is a new chance.
+    var liveFailureDismissed by remember(request) { mutableStateOf(false) }
+
+    // The picture-size mode's name, shown for a moment after each change (Ludeen). A new value
+    // per press so the timeout restarts on every one of a run of presses.
+    var aspectNoticeAt: Long? by remember { mutableStateOf(null) }
+
     // The badge for a seek or a resume made with the controls hidden. A new value per press, so
     // the timeout below restarts on every one of a run of taps.
     var osdFlash: TvOsdFlash? by remember { mutableStateOf(null) }
@@ -248,18 +257,32 @@ fun TvPlayerScreen(
         controlsVisible = false
     }
 
+    // Playback has failed and stopped trying. The status only becomes ERROR once the
+    // controller has exhausted its retries, so this is the point where there is nothing
+    // left to wait for.
+    val hasFailed = state.status == PlaybackStatus.ERROR
+
+    // A dead live channel with its error screen cleared: black, a notice, and the remote free to
+    // zap. Films keep the error screen; there is nothing next to them to go to (Ludeen).
+    val isDeadChannelHeld = hasFailed && liveFailureDismissed
+    val isFailureScreenShown = hasFailed && !liveFailureDismissed
+
     fun playerBackState() = TvPlayerBackState(
         trackMenuOpen = trackMenuAt != null,
         controlsVisible = controlsVisible,
         isOfferingNextEpisode = isOfferingNextEpisode,
         channelListOpen = channelListOpen,
         channelListAtCategories = channelListAtCategories,
+        liveFailureShown = isFailureScreenShown && request is TvPlaybackRequest.Live,
+        infoOpen = infoVisible,
     )
 
     fun applyPlayerBack(action: TvPlayerBackAction) {
         when (action) {
             TvPlayerBackAction.CloseChannelList -> channelListOpen = false
             TvPlayerBackAction.ChannelListToChannels -> channelListAtCategories = false
+            TvPlayerBackAction.DismissLiveFailure -> liveFailureDismissed = true
+            TvPlayerBackAction.CloseInfo -> viewModel.toggleDiagnostics()
             TvPlayerBackAction.CloseTrackMenu -> trackMenuAt = null
             TvPlayerBackAction.HideControls -> hideControls()
             TvPlayerBackAction.DismissNextEpisode -> nextEpisodeDismissed = true
@@ -287,9 +310,19 @@ fun TvPlayerScreen(
      * its node exists but has not been placed — it does not throw — and the `runCatching` this
      * replaces dropped that answer on the floor. `022` #4, in the one place it had been missed.
      */
-    LaunchedEffect(controlsVisible, trackMenuAt, isOfferingNextEpisode, channelListOpen) {
-        val isSomethingElseUp = controlsVisible || trackMenuAt != null || isOfferingNextEpisode || channelListOpen
+    LaunchedEffect(controlsVisible, trackMenuAt, isOfferingNextEpisode, channelListOpen, isFailureScreenShown) {
+        // The error screen places the remote on Try again itself; once Back clears it on a dead
+        // channel, the root takes the remote back so Up and Down zap (Ludeen).
+        val isSomethingElseUp = controlsVisible || trackMenuAt != null || isOfferingNextEpisode ||
+            channelListOpen || isFailureScreenShown
         if (!isSomethingElseUp) rootFocus.insistOnFocus()
+    }
+
+    LaunchedEffect(aspectNoticeAt) {
+        if (aspectNoticeAt != null) {
+            delay(ASPECT_NOTICE_MILLIS)
+            aspectNoticeAt = null
+        }
     }
 
     // The offer replaces the controls rather than sitting over them. Two focusable things
@@ -330,11 +363,6 @@ fun TvPlayerScreen(
             zapNotice = null
         }
     }
-
-    // Playback has failed and stopped trying. The status only becomes ERROR once the
-    // controller has exhausted its retries, so this is the point where there is nothing
-    // left to wait for.
-    val hasFailed = state.status == PlaybackStatus.ERROR
 
     /*
      * Immersive mode.
@@ -445,7 +473,9 @@ fun TvPlayerScreen(
                         // pausing a dead stream, seeking it, cycling its aspect ratio. Left
                         // unhandled so the same presses reach the Try again and Back buttons
                         // instead, which is the only thing a viewer can usefully do here.
-                        hasFailed = hasFailed,
+                        // Ludeen: once Back has cleared a dead live channel's error screen, the
+                        // remote is free again — Up and Down zap, Left opens the list, OK retries.
+                        hasFailed = isFailureScreenShown,
                         areControlsVisible = controlsVisible,
                         isOfferingNextEpisode = isOfferingNextEpisode,
                         isSeekable = state.isSeekable,
@@ -458,8 +488,13 @@ fun TvPlayerScreen(
                         isChannelListOpen = channelListOpen,
                     ),
                     actions = KeyActions(
-                        showControls = { showControls() },
-                        playPause = {
+                        // Nothing to control on a dead channel; the controls stay down.
+                        showControls = { if (!hasFailed) showControls() },
+                        playPause = playPause@{
+                            if (isDeadChannelHeld) {
+                                viewModel.retry()
+                                return@playPause
+                            }
                             val willPlay = !state.isPlaying
                             viewModel.togglePlayPause()
                             // A pause needs no flash: the badge stays while paused, from the status.
@@ -472,9 +507,11 @@ fun TvPlayerScreen(
                         },
                         zap = onZap,
                         stepEpisode = onStepEpisode,
+                        // Names the new mode over the picture rather than raising the controls to
+                        // show it on their button (Ludeen).
                         cycleAspect = {
                             viewModel.cycleAspectRatio()
-                            showControls()
+                            aspectNoticeAt = SystemClock.uptimeMillis()
                         },
                         // Only when there is a choice. Opening an empty panel would be the
                         // hollow-feature shape this project has deleted nine of.
@@ -535,6 +572,7 @@ fun TvPlayerScreen(
             // Zapping from the list onto a dead channel leaves the remote in the list, so the
             // next channel is one press away rather than behind Try again.
             failureMayClaimFocus = !channelListOpen,
+            isFailureScreenShown = isFailureScreenShown,
             trackMenuAt = trackMenuAt,
             zapNotice = zapNotice,
             trackMenu = trackMenu,
@@ -556,7 +594,10 @@ fun TvPlayerScreen(
                 previousEpisode = { onStepEpisode(-1) },
                 openAudio = { trackMenuAt = TrackMenuKind.AUDIO },
                 openSubtitles = { trackMenuAt = TrackMenuKind.SUBTITLES },
-                cycleAspect = viewModel::cycleAspectRatio,
+                cycleAspect = {
+                    viewModel.cycleAspectRatio()
+                    aspectNoticeAt = SystemClock.uptimeMillis()
+                },
                 toggleInfo = viewModel::toggleDiagnostics,
             ),
             onRetry = viewModel::retry,
@@ -581,6 +622,9 @@ fun TvPlayerScreen(
             subtitleNotice = subtitleNotice,
             diagnosis = diagnosis,
         )
+
+        if (isDeadChannelHeld) DeadChannelNotice()
+        if (aspectNoticeAt != null) ModeNotice(text = stringResource(aspectRatioMode.labelRes()))
 
         val live = request as? TvPlaybackRequest.Live
         // Drawn over the error too: a dead channel is one more to zap past, not a reason to lose the list.
@@ -630,6 +674,7 @@ private fun PlayerOverlays(
     controlsVisible: Boolean,
     controlsMayClaimFocus: Boolean,
     failureMayClaimFocus: Boolean,
+    isFailureScreenShown: Boolean,
     trackMenuAt: TrackMenuKind?,
     zapNotice: String?,
     trackMenu: TrackMenu,
@@ -650,7 +695,7 @@ private fun PlayerOverlays(
         Buffering(retryAttempt = state.retryAttempt)
     }
 
-    if (hasFailed) {
+    if (isFailureScreenShown) {
         PlaybackFailure(
             error = state.error,
             diagnosis = diagnosis,
@@ -1282,6 +1327,61 @@ private fun PlaybackFailure(
     }
 }
 
+/**
+ * A dead live channel after Back cleared its error screen (Ludeen): black, and this to say why,
+ * and what the remote does from here. Stays until the channel changes or plays again.
+ */
+@Composable
+private fun DeadChannelNotice() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(48.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                .padding(horizontal = 28.dp, vertical = 18.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.tv_player_dead_channel),
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = stringResource(R.string.tv_player_dead_channel_hint),
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 16.sp,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+        }
+    }
+}
+
+/** The picture-size mode just chosen, top centre, for a moment (Ludeen). */
+@Composable
+private fun ModeNotice(text: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(48.dp),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier
+                .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+        )
+    }
+}
+
 /** What you just zapped to, shown briefly. Without it a channel change is unannounced. */
 @Composable
 private fun ZapNotice(name: String) {
@@ -1354,6 +1454,7 @@ private const val AMBIENT_SAMPLE_MILLIS = 1_000L
  */
 private const val CONTROLS_TIMEOUT_MILLIS = 6_000L
 private const val ZAP_NOTICE_MILLIS = 2_500L
+private const val ASPECT_NOTICE_MILLIS = 2_000L
 private const val OSD_FLASH_MILLIS = 1_500L
 
 /** Longer than the zap notice: this one is a sentence, and it is read from across a room. */
