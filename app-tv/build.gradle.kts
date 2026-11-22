@@ -59,8 +59,8 @@ android {
         // A separate application id, not a flavour of the phone app. They are two installs
         // with two databases, and a user may well have both — a phone and a television.
         applicationId = "dev.quiblo.tv.bash"
-        versionCode = 77
-        versionName = "0.44.0-Bash"
+        versionCode = 78
+        versionName = "0.45.0-Bash"
         minSdk = if (isAndroid9Build) androidNineSdk else androidElevenSdk
         buildConfigField("String", "LUDEEN_APK_VARIANT", if (isAndroid9Build) "\"android9\"" else "\"\"")
     }
